@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<!-- {% load static %} -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+  
+  <!-- <link rel="stylesheet" type="text/css" href="{% static 'css/test.css' %}"> -->
+  <link rel="stylesheet" type="text/css" href="test.css">
+
+  <title>刑法資料庫</title>
+  <script>
+    // function show_query_result(clicked_button_name){
+    //   query_type = document.getElementsByName('query_type')
+    //   for (var radio of query_type){
+    //     if (radio.checked){
+    //       query_type = radio.value;
+    //     }
+    //   }
+    //   query_text = document.getElementById('query_text').value
+    //   let query_parameters = {
+      
+
+    //     court_type: document.getElementById('court_type').value,
+    //     jud_date: document.getElementById('jud_date').value,
+    //     syllabus: document.getElementById('syllabus').value,
+    //     basic_info: document.getElementById('basic_info').value,
+    //     jud_full: document.getElementById('jud_full').value
+    //   };
+
+    //   show_query_content = document.getElementById('query_content');
+    //   show_query_content.innerHTML = `${query_text}`;
+    //   // domain = 'https://c43b-112-104-64-172.ngrok-free.app/api/search/all?'
+    //   domain = 'http://127.0.0.1:8000/api/search/all?'
+    //   request_url = domain + `search_method=${clicked_button_name}`
+
+    //   for (const key in query_parameters) {
+    //     value = query_parameters[key]
+    //     if (value === '') {
+    //       continue
+    //     }
+    //     else{
+    //       request_url += `&${key}=${value}`
+    //     }
+    //   }
+    //   if (query_text!=''){
+    //     request_url += `&${query_type}=${query_text}`
+    //   }
+    //   document.getElementById('show_input').innerHTML = `<a href="${request_url}">${request_url}</a>`
+    //   let query_types = {
+    //     'sub': '涵攝',
+    //     'opinion': '見解',
+    //     'fee': '心證',
+    //   }
+    //   let api_json;
+    //   fetch(request_url, {
+    //     method: 'get',
+    //     headers: new Headers({
+    //         "ngrok-skip-browser-warning": "69420"
+    //     }),
+    //     })
+    //     .then((response) => {
+    //         return response.json();
+    //     })
+    //     .then((json) => {
+    //         api_json = json
+    //         let table_head = `
+    //         <thead>
+    //           <tr>
+    //             <th style="width:3em">院別</th>
+    //             <th style="width:5em">裁判日期</th>
+    //             <th style="width:14em">行政資訊</br>（案號, 日期, 法官, 檢察官）</th>
+    //             <th data-orderable="false">${query_types[query_type]}</th>
+    //           </tr>
+    //         </thead>
+    //         <tbody>
+    //         `;
+
+    //         json['data'].forEach((data) => {
+    //           table_head += `
+    //           <tr>
+    //             <td>${data['court_type']}</td>
+    //             <td>${data['jud_date']}</td>
+    //             <td><a href="${data['jud_url']}" data-toggle="tooltip" data-placement="bottom" title="前往判決原文" target="_blank">${data['JID']}</a></td>
+    //             <td><span class="copy-text" data-toggle="tooltip" data-placement="bottom" title="點擊以複製文字">${data[query_type]}</span></td>
+    //           </tr>`;
+    //         });
+
+    //         table_head += '</tbody>';
+    //         document.getElementById('targetTable').innerHTML = table_head
+    //         document.getElementById('show_input').innerHTML = JSON.stringify(data['data'][0], undefined, 2);
+    //   })
+    //   .catch(function(error) {
+    //   });
+    // }
+      
+  </script>
+</head>
+<body>
+
+  <!-- <div class="container-fluid py-5"> -->
+  <div class="container py-5">
+    <header class="text-center text-black">
+      <h1 class="display-4">刑法資料庫</h1>
+      <!-- <h1 class="display-4">台灣地圖上的見解資料庫</h1> -->
+      <!-- (來源: 111地院判決書_無簡_全文_移除符號.csv)
+            (來源: 1222_opinion_sentence_district_embedding.csv)
+            兩個檔案共通的案號數目: 12414
+       -->
+      <p class="lead mb-0 text-start">判決書數目:  19712 <br/>
+        見解數目:  62409 <br/>
+        </p>
+      <!-- <p class="lead mb-0">基本資訊資料數目:  19712 (來源: 111地院判決書_無簡_全文_移除符號.csv)<br/>
+        見解資料數目:  62409 (來源: 1222_opinion_sentence_district_embedding.csv)<br/>
+        兩個檔案共通的案號數目: 12414</p> -->
+  
+    </header>
+    
+    <div class="row py-5">
+      <div class="col-lg-12 mx-auto">
+        <div class="card rounded shadow border-0">
+          <div class="card-body p-5 bg-white rounded">
+
+            <div class="row mb-2">
+              <div class="col-sm-12 col-md-auto">
+                <div class="form-inline">
+                    <label class="" for="court_type">法院</label>
+                    <input type="text" class="form-control form-control-sm ml-2 mr-2" id="court_type">
+                    <label class="" for="jud_date">裁判日期</label>
+                    <input type="text" class="form-control form-control-sm ml-2 mr-2" id="jud_date">
+
+                </div>
+              </div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-sm-12 col-md-auto">
+                <div class="form-inline">
+                    <label class="" for="syllabus">主文</label>
+                    <input type="text" class="form-control form-control-sm ml-2 mr-2" id="syllabus">
+                    <label class="" for="basic_info">基本資訊</label>
+                    <input type="text" class="form-control form-control-sm ml-2 mr-2" id="basic_info">
+                    <label class="" for="jud_full">判決書全文</label>
+                    <input type="text" class="form-control form-control-sm ml-2 mr-2" id="jud_full">
+                </div>
+              </div>
+            </div>
+            <div class="row justify-content-between mb-2">
+              <div class="col-sm-12 col-md-auto">
+                <div class="form-inline">
+                  <form action="" class="form-inline">
+                      <!-- <div class="col-auto"> -->
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input mr-2" name='query_type' type="radio" value="fee" id="fee">
+                        <label class="form-check-label mr-2" for="fee">心證</label>
+                    <!-- </div> -->
+                    <!-- <div class="form-check form-check-inline"> -->
+                        <input class="form-check-input mr-2" name='query_type' type="radio" value="opinion" id="opinion" checked>
+                        <label class="form-check-label mr-2" for="opinion">見解</label>
+                    <!-- </div> -->
+                    <!-- <div class="form-check form-check-inline"> -->
+                        <input class="form-check-input mr-2" name='query_type' type="radio" value="sub" id="sub">
+                        <label class="form-check-label" for="sub">涵攝</label>
+                    </div>
+                      <!-- </div> -->
+              
+                  
+                      <!-- Submit button in its own column -->
+                      <!-- <div class="col form-inline"> -->
+                        <!-- {{ keyword_form.keyword.label }} -->
+                        <!-- {{ keyword_form.keyword }} -->
+                        <!-- <label class="" for="query_text">輸入</label> -->
+                    <input type="text" class="form-control form-control-sm mr-2" id="query_text">
+                      <!-- </div> -->
+
+                  </form>
+                  <input type="submit" name="keyword" value="關鍵字搜尋" id="search_method" onclick="show_query_result(this.name);" class="consistent-border btn btn-secondary btn-sm ml-2">
+                  <input type="submit" name="vector" value="相似內容搜尋" id="search_method" onclick="show_query_result(this.name);" class="consistent-border btn btn-secondary btn-sm ml-2">
+                   
+                </div>
+
+      
+              </div>
+              
+            </div>
+
+            <div class="row mb-2">
+              <div class="col-sm-12 col-md-12 ">
+                    <!-- <div class="query-or-random"><b class="{{query_type}}">查詢內容</b>: <span class="copy-text {{query_type}}" data-toggle="tooltip" data-placement="bottom" title="點擊以複製文字">{{query_text}}</span></div> -->
+                    <div class="query-or-random"><b class="">查詢內容</b>: <span class="copy-text" data-toggle="tooltip" data-placement="bottom" title="點擊以複製文字" id="query_content"></span></div>
+
+              </div>
+            </div>
+            <pre id="show_input">
+
+            </pre>
+            <div class="table-responsive">
+              <table id="targetTable" style="width:100%" class="table table-striped table-bordered">
+                <thead id="thead">
+                  <tr>
+                    <th style="width:3em">院別</th>
+                    <th style="width:5em">裁判日期</th>
+                    <th style="width:14em">行政資訊</br>（案號, 日期, 法官, 檢察官）</th>
+                    <th data-orderable="false" style="width:5em">查詢結果</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody">
+
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;"></div>
+      <div class="position-fixed bottom-0 right-0 p-3" style="z-index: 5; right: 0; bottom: 0;">
+        <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true" data-delay="500">
+          <div class="toast-header">
+            <!-- <img src="..." class="rounded mr-2" alt="..."> -->
+            <strong class="mr-auto">複製文字！</strong>
+            <!-- <small>11 mins ago</small> -->
+            <!-- <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button> -->
+          </div>
+          <!-- <div class="toast-body">
+            Hello, world! This is a toast message.
+          </div> -->
+        </div>
+
+      </div>
+    </div>
+    <!-- {{ ip_addr }} -->
+
+  </div>
+
+
+  <!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  
+  <!-- <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.7.0.js"></script> -->
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <!-- <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.13.6/js/dataTables.jqueryui.min.js"></script> -->
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.jqueryui.min.js"></script>
+
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous"></script> -->
+  <!-- <script src="{% static 'js/test.js' %}"></script> -->
+  <!-- <script src="/workspace/Projects/CDB/cdb/static/js/test_all_rendor.js"></script> -->
+  <script src="test_datatable.js"></script>
+</body>
+</html>

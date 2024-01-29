@@ -1,0 +1,89 @@
+/*
+*
+* ==========================================
+* FOR DEMO PURPOSES
+* ==========================================
+*
+*/
+
+body {
+    min-height: 100vh;
+  
+    background-color: #B3D2B7;
+    /* background-image: linear-gradient(147deg, #B3D2B7 0%, #FF2525 100%); */
+  }
+  /* .display-single-data{
+    background: #f2f2f2;
+    padding: 4px 8px; 
+    border: 1px solid #ffcc25;
+  } */
+/* .common-attrs b{
+  background-color: #a3ffb9;
+  padding: 4px 8px;
+
+} */
+.common-attrs{
+  color: black;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+.query-or-random{
+  color: black;
+  
+  border: 1px solid #68bb7a;
+  border-radius: 5px;
+  /* background-color: #ffcc25; */
+  /* border: 1px solid #ced4da;
+  background-color: #ffcc25; */
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  /* border: 1px solid; */
+  /* border-image: linear-gradient(147deg, #FFE53B 0%, #FF2525 100%) 1; */
+  /* background-image: linear-gradient(147deg, #ffe95b 0%, #f8b840 100%); */
+}
+.display-single-data h6{
+  color: black;
+  border-radius: 5px;
+  
+  border: 1px solid #ced4da;
+  background-color: #a4d3ae;
+  /* border: 1px solid #ced4da;
+  background-color: #ffcc25; */
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  /* border: 1px solid; */
+  /* border-image: linear-gradient(147deg, #FFE53B 0%, #FF2525 100%) 1; */
+  /* background-image: linear-gradient(147deg, #ffe95b 0%, #f8b840 100%); */
+  display: inline;
+  
+}
+
+.api-style{
+  padding: 4px 8px;
+  border: 1px solid #a4d3ae;
+  border-radius: 5px;
+  /* border: 1px solid #27ff59;  */
+  /* background-color: #a3ffb9; */
+}
+.table-striped>tbody>tr:nth-child(odd)>td,
+.table-striped>tbody>tr:nth-child(odd)>th {
+	background-color: #EFFDF2;
+}
+
+.pagination > li > a, .pagination > li > span{
+  background-color:#afd8b8;
+  color: white;
+}
+/* .pagination > li.active > a, .pagination > li.active > span{ */
+.page-item.active .page-link{
+  background-color:#306F2D
+}
+.copy-text{
+  cursor: pointer;
+}
+header>h1, header>p{
+  color: #093107;
+}
+/* .toast{
+
+} */
