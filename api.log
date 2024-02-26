@@ -80,3 +80,8 @@
 2024-02-25 21:59:23,379 - INFO - 127.0.0.1:39414 - "GET /api/search?search_method=keyword&page=1&size=10&sub=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
 2024-02-25 22:00:14,980 - INFO - 127.0.0.1:58434 - "GET /api/search?search_method=keyword&page=1&size=10&jud_date=20220101-20220110 HTTP/1.1" 200
 2024-02-25 22:00:36,756 - INFO - 127.0.0.1:56132 - "GET /api/search?search_method=keyword&page=1&size=10&jud_date=20220101-20220501 HTTP/1.1" 200
+2024-02-26 13:46:11,005 - INFO - 140.114.213.23:61523 - "GET / HTTP/1.1" 404
+2024-02-26 13:47:14,041 - INFO - 140.114.213.23:61542 - "GET /api/search/all?search_method=keyword&sub=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 13:49:25,304 - INFO - 140.114.213.23:61602 - "GET /api/search/all?search_method=keyword&sub=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 13:54:39,138 - INFO - 140.114.213.23:54515 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 13:55:22,332 - INFO - 140.114.213.23:54516 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA,%20ws://140.114.80.195:6127 HTTP/1.1" 200

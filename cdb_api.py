@@ -32,7 +32,7 @@ from contextlib import asynccontextmanager
 # Log
 import logging
 
-
+import ssl
 
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
@@ -309,18 +309,23 @@ preloaded_data = {
 async def lifespan(app: FastAPI):
     # Use vector or not
     load_LLM = False
-
+    on_server = True
 
     # Load data
     logger = logging.getLogger("uvicorn.access")
     handler = logging.handlers.RotatingFileHandler("api.log",mode="a",maxBytes = 100*1024, backupCount = 3)
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
-
-    main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_main_basic.csv')
-    opinion_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_category_opinion.csv')
-    sub_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_sub.csv')
-    fee_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_fee.csv')
+    if on_server:
+        main_basic_df = pd.read_csv('~/workspace/111資料/db_loaded/20240120_main_basic.csv')
+        opinion_df = pd.read_csv('~/workspace/111資料/db_loaded/20240120_category_opinion.csv')
+        sub_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_sub.csv')
+        fee_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_fee.csv')
+    else:
+        main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_main_basic.csv')
+        opinion_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_category_opinion.csv')
+        sub_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_sub.csv')
+        fee_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_fee.csv')
 
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
     if load_LLM:
@@ -330,9 +335,14 @@ async def lifespan(app: FastAPI):
 
         ori_glm2_model = load_ori_glm2(llm_path)
         tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
-        opinion_flat = faiss.read_index('/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
-        fee_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_fee.bin')
-        sub_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_sub.bin')
+        if on_server:
+            opinion_flat = faiss.read_index('~/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
+            fee_flat = faiss.read_index('~/workspace/111資料/db_loaded/20240225_embedding_fee.bin')
+            sub_flat = faiss.read_index('~/workspace/111資料/db_loaded/20240225_embedding_sub.bin')
+        else:
+            opinion_flat = faiss.read_index('/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
+            fee_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_fee.bin')
+            sub_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_sub.bin')
         preloaded_data['ori_glm2_model'] = ori_glm2_model
         preloaded_data['tokenizer'] = tokenizer
         preloaded_data['opinion_flat'] = opinion_flat
@@ -349,12 +359,13 @@ async def lifespan(app: FastAPI):
     # Clean up the models and release the resources
     preloaded_data.clear()
 
-# domain = 'https://1fb4-112-104-64-172.ngrok-free.app' + '/'
+domain = 'https://5737-140-114-83-23.ngrok-free.app' + '/'
 # domain = '127.0.0.1:8000' + '/'
-domain = 'http://140.114.80.195:6127' + '/'
+# domain = 'http://140.114.80.195:6127' + '/'
 
 app = FastAPI(lifespan=lifespan)
-
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+ssl_context.load_cert_chain('/home/lawrencechh/AIFR_CDB/cert.pem', keyfile='/home/lawrencechh/AIFR_CDB/key.pem')
 # app = FastAPI()
 
 
