@@ -309,7 +309,7 @@ preloaded_data = {
 async def lifespan(app: FastAPI):
     # Use vector or not
     load_LLM = False
-    on_server = True
+    on_server = False
 
     # Load data
     logger = logging.getLogger("uvicorn.access")
@@ -359,9 +359,9 @@ async def lifespan(app: FastAPI):
     # Clean up the models and release the resources
     preloaded_data.clear()
 
-domain = 'https://5737-140-114-83-23.ngrok-free.app' + '/'
+# domain = 'https://5737-140-114-83-23.ngrok-free.app' + '/'
 # domain = '127.0.0.1:8000' + '/'
-# domain = 'http://140.114.80.195:6127' + '/'
+domain = 'http://140.114.80.195:6127' + '/'
 
 app = FastAPI(lifespan=lifespan)
 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
