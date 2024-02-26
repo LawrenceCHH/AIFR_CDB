@@ -137,3 +137,15 @@
 2024-02-26 17:44:58,660 - INFO - 140.114.83.23:57700 - "GET /favicon.ico HTTP/1.1" 404
 2024-02-26 17:45:05,112 - INFO - 140.114.83.23:57703 - "GET /docs HTTP/1.1" 200
 2024-02-26 17:45:05,509 - INFO - 140.114.83.23:57703 - "GET /openapi.json HTTP/1.1" 200
+2024-02-26 18:01:59,369 - INFO - 140.114.213.23:49981 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 18:02:00,641 - INFO - 140.114.213.23:49981 - "GET /favicon.ico HTTP/1.1" 404
+2024-02-26 18:14:08,729 - INFO - 140.114.83.23:59558 - "GET / HTTP/1.1" 307
+2024-02-26 18:14:24,550 - INFO - 140.114.83.23:59559 - "GET / HTTP/1.1" 307
+2024-02-26 18:15:33,359 - INFO - 140.114.83.23:59576 - "GET / HTTP/1.1" 307
+2024-02-26 18:19:24,332 - INFO - 140.114.83.23:59608 - "GET / HTTP/1.1" 404
+2024-02-26 18:20:01,563 - INFO - 140.114.213.23:50730 - "OPTIONS /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 18:20:01,718 - INFO - 140.114.213.23:50730 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 18:20:18,691 - INFO - 140.114.213.23:50741 - "OPTIONS /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 18:20:18,800 - INFO - 140.114.213.23:50741 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 18:20:39,458 - INFO - 140.114.213.23:50753 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-02-26 18:23:41,669 - INFO - 140.114.213.23:50775 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
