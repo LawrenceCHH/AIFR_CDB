@@ -2,8 +2,7 @@ from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
 
 import os
-import torch
-from transformers import AutoConfig, AutoModel, AutoTokenizer
+
 import json
 import pandas as pd
 from tqdm import tqdm
@@ -326,6 +325,8 @@ async def lifespan(app: FastAPI):
 
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
     if load_LLM:
+        import torch
+        from transformers import AutoConfig, AutoModel, AutoTokenizer
         ori_glm2_model = load_ori_glm2(llm_path)
         tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
         opinion_flat = faiss.read_index('/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
