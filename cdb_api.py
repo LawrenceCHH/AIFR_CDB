@@ -287,63 +287,68 @@ def get_condition_filtered_dict(condition_dict, target_df):
             result_df = get_keywords_df(query_text, result_df, target_column)
         if len(result_df)==0:
             result_dict['unavailable'].append([target_column, query_text])
-            result_df = last_result_df
+            break
+            # Use last available conditions
+            # result_df = last_result_df
         else:
             result_dict['available'].append([target_column, query_text])
             last_result_df = result_df.copy()
+
+    # Drop unwanted columns 
+    if len(result_df) > 0:
+        print(result_df.iloc[0])
+        result_df = result_df.drop('jud_full', axis=1)
+
     result_dict['result_df'] = result_df
     return result_dict
 
 llm_path = r"/workspace/LLM/chatglm2-6b"
-
-# ori_glm2_model = load_ori_glm2(llm_path)
-# tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
-# main_basic_df = pd.read_csv('/workspace/111資料/20240120_main_basic.csv')
-# opinion_df = pd.read_csv('/workspace/111資料/20240120_category_opinion.csv')
-# sub_df = pd.read_csv('/workspace/111資料/20240120_category_sub.csv')
-# fee_df = pd.read_csv('/workspace/111資料/20240120_category_fee.csv')
-# opinion_flat = faiss.read_index('/workspace/111資料/0114_op_sentence_district_TARGET_embedding.bin')
-# fee_flat = faiss.read_index('/workspace/111資料/0114_ft_paragraph_district_TARGET_embedding.bin')
-# sub_flat = faiss.read_index('/workspace/111資料/0114_sub_paragraph_district_TARGET_embedding.bin')
-# db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
 
 preloaded_data = {
 
 }
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Use vector or not
+    load_LLM = False
+
+
     # Load data
     logger = logging.getLogger("uvicorn.access")
     handler = logging.handlers.RotatingFileHandler("api.log",mode="a",maxBytes = 100*1024, backupCount = 3)
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
 
-    ori_glm2_model = load_ori_glm2(llm_path)
-    tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
-    main_basic_df = pd.read_csv('/workspace/111資料/20240120_main_basic.csv')
-    opinion_df = pd.read_csv('/workspace/111資料/20240120_category_opinion.csv')
-    sub_df = pd.read_csv('/workspace/111資料/20240120_category_sub.csv')
-    fee_df = pd.read_csv('/workspace/111資料/20240120_category_fee.csv')
-    opinion_flat = faiss.read_index('/workspace/111資料/0114_op_sentence_district_TARGET_embedding.bin')
-    fee_flat = faiss.read_index('/workspace/111資料/0114_ft_paragraph_district_TARGET_embedding.bin')
-    sub_flat = faiss.read_index('/workspace/111資料/0114_sub_paragraph_district_TARGET_embedding.bin')
-    db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
-    preloaded_data['ori_glm2_model'] = ori_glm2_model
-    preloaded_data['tokenizer'] = tokenizer
+    main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_main_basic.csv')
+    opinion_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_category_opinion.csv')
+    sub_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_sub.csv')
+    fee_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_fee.csv')
+
+    db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
+    if load_LLM:
+        ori_glm2_model = load_ori_glm2(llm_path)
+        tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
+        opinion_flat = faiss.read_index('/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
+        fee_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_fee.bin')
+        sub_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_sub.bin')
+        preloaded_data['ori_glm2_model'] = ori_glm2_model
+        preloaded_data['tokenizer'] = tokenizer
+        preloaded_data['opinion_flat'] = opinion_flat
+        preloaded_data['fee_flat'] = fee_flat
+        preloaded_data['sub_flat'] = sub_flat
+        db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
+
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
     preloaded_data['fee_df'] = fee_df
-    preloaded_data['opinion_flat'] = opinion_flat
-    preloaded_data['fee_flat'] = fee_flat
-    preloaded_data['sub_flat'] = sub_flat
     preloaded_data['db'] = db
     yield
     # Clean up the models and release the resources
     preloaded_data.clear()
 
-domain = 'https://1fb4-112-104-64-172.ngrok-free.app' + '/'
-# domain = '127.0.0.1:3000' + '/'
+# domain = 'https://1fb4-112-104-64-172.ngrok-free.app' + '/'
+domain = '127.0.0.1:8000' + '/'
 
 app = FastAPI(lifespan=lifespan)
 
@@ -427,7 +432,9 @@ async def search_all(
     sub: str | None = None, 
     jud_full: str | None = None 
     ):
+    # jud_full
     jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
+    # jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
     # Frontend request only necessary input, other unused variable use null
     query_dict = {key: jud[key] for key in jud.keys() & {'fee', 'sub', 'opinion'} if jud[key]!=None}
     condition_dict = {key: jud[key] for key in jud.keys() & {'court_type', 'jud_date', 'basic_info', 'syllabus', 'jud_full'} if jud[key]!=None}
@@ -447,7 +454,7 @@ async def search_all(
         # res_df = res_df[~res_df['fee']=='無資料' and res_df['sub']=='無資料' and res_df['opinion']=='無資料']
         res_df = res_df[~((res_df['fee']=='無資料') & (res_df['sub']=='無資料') & (res_df['opinion']=='無資料'))]
    
-    # Search categories
+    # Vector search
     else:
         query_type, query_text = list(query_dict.items())[0]
         print(query_type, query_text, search_method)
@@ -580,7 +587,7 @@ class JUD_item(BaseModel):
     fee: List | str | None = None
     opinion: List | str | None = None
     sub: List | str | None = None
-    jud_full: str 
+    # jud_full: str 
     jud_url: str 
     type: str | None = None
     distance: float | None = None
@@ -601,10 +608,13 @@ async def search(
     opinion: str | None = None, 
     fee: str | None = None, 
     sub: str | None = None, 
-    jud_full: str | None = None, 
+    # jud_full: str | None = None, 
     )-> JSONAPIPage[JUD_item]:
-    res_json = await search_all(search_method, court_type, jud_date, basic_info, syllabus, opinion, fee, sub, jud_full)
-    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
+    # jud_full
+    # res_json = await search_all(search_method, court_type, jud_date, basic_info, syllabus, opinion, fee, sub, jud_full)
+    # request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
+    res_json = await search_all(search_method, court_type, jud_date, basic_info, syllabus, opinion, fee, sub)
+    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
     request_url_prefix = domain + 'api/search/' + "?" + "".join([f'{key}={request_params[key]}&' for key in request_params.keys() if request_params[key]!=None])
     paged_res_json = paginate(res_json["data"], additional_data={'query_info': res_json['query_info'], 'condition_info': res_json['condition_info'], 'summary': res_json['summary'], 'request_url_prefix': request_url_prefix})
 
