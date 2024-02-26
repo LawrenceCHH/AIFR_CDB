@@ -9,7 +9,6 @@ from tqdm import tqdm
 import gc
 import numpy as np
 
-import faiss
 
 # Pagination
 from typing import List
@@ -327,6 +326,8 @@ async def lifespan(app: FastAPI):
     if load_LLM:
         import torch
         from transformers import AutoConfig, AutoModel, AutoTokenizer
+        import faiss
+
         ori_glm2_model = load_ori_glm2(llm_path)
         tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
         opinion_flat = faiss.read_index('/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
