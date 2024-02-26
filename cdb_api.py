@@ -348,7 +348,8 @@ async def lifespan(app: FastAPI):
     preloaded_data.clear()
 
 # domain = 'https://1fb4-112-104-64-172.ngrok-free.app' + '/'
-domain = '127.0.0.1:8000' + '/'
+# domain = '127.0.0.1:8000' + '/'
+domain = '140.114.80.195:6127' + '/'
 
 app = FastAPI(lifespan=lifespan)
 
