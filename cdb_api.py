@@ -34,6 +34,8 @@ import logging
 
 import ssl
 
+load_LLM = False
+on_server = True
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -308,8 +310,7 @@ preloaded_data = {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Use vector or not
-    load_LLM = False
-    on_server = False
+
 
     # Load data
     logger = logging.getLogger("uvicorn.access")
@@ -361,11 +362,12 @@ async def lifespan(app: FastAPI):
 
 # domain = 'https://5737-140-114-83-23.ngrok-free.app' + '/'
 # domain = '127.0.0.1:8000' + '/'
-domain = 'http://140.114.80.195:6127' + '/'
+domain = 'https://140.114.80.195:6127' + '/'
 
 app = FastAPI(lifespan=lifespan)
-ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-ssl_context.load_cert_chain('/home/lawrencechh/AIFR_CDB/cert.pem', keyfile='/home/lawrencechh/AIFR_CDB/key.pem')
+if on_server:
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain('/home/lawrencechh/AIFR_CDB_keys/cert.pem', keyfile='/home/lawrencechh/AIFR_CDB_keys/key.pem')
 # app = FastAPI()
 
 
