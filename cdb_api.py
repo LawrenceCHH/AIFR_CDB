@@ -318,12 +318,12 @@ async def lifespan(app: FastAPI):
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
     if on_server:
-        main_basic_df = pd.read_csv('~/workspace/111資料/db_loaded/20240120_main_basic.csv')
+        main_basic_df = pd.read_csv('~/workspace/111資料/db_loaded/20240228_main_basic.csv')
         opinion_df = pd.read_csv('~/workspace/111資料/db_loaded/20240120_category_opinion.csv')
         sub_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_sub.csv')
         fee_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_fee.csv')
     else:
-        main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_main_basic.csv')
+        main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240228_main_basic.csv')
         opinion_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_category_opinion.csv')
         sub_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_sub.csv')
         fee_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_fee.csv')
@@ -351,6 +351,8 @@ async def lifespan(app: FastAPI):
         preloaded_data['sub_flat'] = sub_flat
         db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
 
+    # Remove unnecessary column
+    main_basic_df.drop(['basic_info_20240120', "Unnamed: 0.1", "Unnamed: 0"], axis=1, inplace=True)
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
@@ -397,7 +399,7 @@ app.add_middleware(
 # class JUD(BaseModel):
 #     court_type: str | None = None
 #     jud_date: str | None = None
-#     # case_kind and basic_info are merged to one paragraph
+#     # case_type and basic_info are merged to one paragraph
 #     basic_info: str | None = None
     
 #     syllabus: str | None = None
@@ -441,6 +443,8 @@ async def search_all(
     search_method: str,
     court_type: str | None = None, 
     jud_date: str | None = None, 
+    case_num: str | None = None, 
+    case_type: str | None = None, 
     basic_info: str | None = None, 
     syllabus: str | None = None, 
     opinion: str | None = None, 
@@ -449,11 +453,12 @@ async def search_all(
     jud_full: str | None = None 
     ):
     # jud_full
-    jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
+    jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
     # jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
+    
     # Frontend request only necessary input, other unused variable use null
     query_dict = {key: jud[key] for key in jud.keys() & {'fee', 'sub', 'opinion'} if jud[key]!=None}
-    condition_dict = {key: jud[key] for key in jud.keys() & {'court_type', 'jud_date', 'basic_info', 'syllabus', 'jud_full'} if jud[key]!=None}
+    condition_dict = {key: jud[key] for key in jud.keys() & {'court_type', 'jud_date', 'case_num', 'case_type', 'basic_info', 'syllabus', 'jud_full'} if jud[key]!=None}
     search_method = jud['search_method']
 
     # Search juds with only conditions
@@ -467,7 +472,6 @@ async def search_all(
             res_df = res_df.merge(grouped_df[['UID', 'sentence']], on='UID', how='left')
             res_df['sentence'].fillna("無資料", inplace=True)
             res_df.rename(columns={'sentence': query_type}, inplace=True)
-        # res_df = res_df[~res_df['fee']=='無資料' and res_df['sub']=='無資料' and res_df['opinion']=='無資料']
         res_df = res_df[~((res_df['fee']=='無資料') & (res_df['sub']=='無資料') & (res_df['opinion']=='無資料'))]
    
     # Vector search
@@ -596,8 +600,11 @@ class JUD_item(BaseModel):
     JID: str 
     court_type: str 
     jud_date: str 
-    # case_kind and basic_info are merged to one paragraph
+    # case_type and basic_info are merged to one paragraph
+    case_num: str | None = None
+    case_type: str | None = None
     basic_info: str | None = None
+
     syllabus: str | None = None
     sentence: str | None = None
     fee: List | str | None = None
@@ -619,6 +626,8 @@ async def search(
     size: str,
     court_type: str | None = None, 
     jud_date: str | None = None, 
+    case_num: str | None = None,
+    case_type: str | None = None,
     basic_info: str | None = None, 
     syllabus: str | None = None, 
     opinion: str | None = None, 
@@ -629,8 +638,8 @@ async def search(
     # jud_full
     # res_json = await search_all(search_method, court_type, jud_date, basic_info, syllabus, opinion, fee, sub, jud_full)
     # request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
-    res_json = await search_all(search_method, court_type, jud_date, basic_info, syllabus, opinion, fee, sub)
-    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
+    res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub)
+    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
     request_url_prefix = domain + 'api/search/' + "?" + "".join([f'{key}={request_params[key]}&' for key in request_params.keys() if request_params[key]!=None])
     paged_res_json = paginate(res_json["data"], additional_data={'query_info': res_json['query_info'], 'condition_info': res_json['condition_info'], 'summary': res_json['summary'], 'request_url_prefix': request_url_prefix})
 
