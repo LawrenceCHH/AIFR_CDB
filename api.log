@@ -298,3 +298,10 @@
 2024-02-29 14:53:23,246 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=10&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&jud_date=20180101-20221231&fee=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
 2024-02-29 14:53:39,611 - INFO - 140.114.83.23:0 - "OPTIONS /api/search?search_method=keyword&page=1&size=10&court_type=%E8%87%BA%E7%81%A3%E6%96%B0%E5%8C%97%E5%9C%B0%E6%96%B9%E6%B3%95%E9%99%A2&jud_date=20180101-20221231&fee=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
 2024-02-29 14:53:39,702 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=10&court_type=%E8%87%BA%E7%81%A3%E6%96%B0%E5%8C%97%E5%9C%B0%E6%96%B9%E6%B3%95%E9%99%A2&jud_date=20180101-20221231&fee=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-03 20:25:02,071 - INFO - 140.114.83.23:51718 - "GET / HTTP/1.1" 404
+2024-03-03 20:25:02,252 - INFO - 140.114.83.23:51718 - "GET /favicon.ico HTTP/1.1" 404
+2024-03-03 20:25:09,944 - INFO - 140.114.83.23:51724 - "GET /docs HTTP/1.1" 200
+2024-03-03 20:25:10,086 - INFO - 140.114.83.23:51724 - "GET /openapi.json HTTP/1.1" 200
+2024-03-03 20:25:30,169 - INFO - 140.114.83.23:51732 - "GET /api/search?search_method=keyword&page=1&size=5&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-03 22:46:05,470 - INFO - 140.114.83.23:65126 - "GET /api/search?search_method=keyword&page=1&size=5&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-03 22:46:37,417 - INFO - 140.114.83.23:65132 - "GET /api/search?search_method=keyword&page=102&size=5&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200

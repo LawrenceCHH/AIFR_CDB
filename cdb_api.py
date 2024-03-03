@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = False
+on_server = True
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -169,6 +169,11 @@ def get_merged_df(main_basic_df, category_df, based_column='UID'):
     del target_basic_df_columns[target_basic_df_columns.index('JID')]
     merged_df = category_df.merge(main_basic_df[target_basic_df_columns], on=based_column, how='left')
     return merged_df
+def get_sorted_res(res_df, search_method):
+    if search_method=='keyword':
+        res_df.sort_values(by='jud_date', inplace=True)
+
+    return res_df
 def get_formatted_res(res_df, query_dict, result_dict):
     if query_dict=={}:
         query_type = ""
@@ -287,9 +292,10 @@ def get_condition_filtered_dict(condition_dict, target_df):
             result_df = get_keywords_df(query_text, result_df, target_column)
         if len(result_df)==0:
             result_dict['unavailable'].append([target_column, query_text])
-            break
             # Use last available conditions
             # result_df = last_result_df
+            # Break if condition not met
+            break
         else:
             result_dict['available'].append([target_column, query_text])
             last_result_df = result_df.copy()
@@ -461,7 +467,7 @@ async def search_all(
     condition_dict = {key: jud[key] for key in jud.keys() & {'court_type', 'jud_date', 'case_num', 'case_type', 'basic_info', 'syllabus', 'jud_full'} if jud[key]!=None}
     search_method = jud['search_method']
 
-    # Search juds with only conditions
+    # Search juds with only conditions, category is not searched
     if query_dict=={}:
         result_dict = get_condition_filtered_dict(condition_dict, preloaded_data['main_basic_df'])
         res_df = result_dict['result_df']
@@ -474,7 +480,7 @@ async def search_all(
             res_df.rename(columns={'sentence': query_type}, inplace=True)
         res_df = res_df[~((res_df['fee']=='無資料') & (res_df['sub']=='無資料') & (res_df['opinion']=='無資料'))]
    
-    # Vector search
+    # Category is searched
     else:
         query_type, query_text = list(query_dict.items())[0]
         print(query_type, query_text, search_method)
@@ -486,21 +492,23 @@ async def search_all(
             faiss_df = get_faiss_dataframe(query_embedding=query_embedding, query_index_flat=preloaded_data['db'][query_type][1], query_df=preloaded_data['db'][query_type][0])
             res_df = get_filtered_res_data(faiss_df, condition="", filter_mode=0)
 
+        # Check if df has data
         if len(res_df)>0:
             merged_df = get_merged_df(preloaded_data['main_basic_df'], res_df, based_column='UID')
-            # for key, value in condition_dict.items():
-            #     print(key, value)
-            #     merged_df = get_condition_filtered_result(value, merged_df, key)
             result_dict = get_condition_filtered_dict(condition_dict, merged_df)
             res_df = result_dict['result_df']
+
+            # Append additional data to res_df
             res_df['jud_date'] = res_df['jud_date'].astype(str)
             res_df['jud_url'] = [f'https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id={JID}' for JID in res_df['JID']]
             result_dict['available'].append([query_type, query_text])
         else:
             result_dict = {'result_df': res_df, 'available': [], 'unavailable': [[query_type, query_text]]}
-        # The resulting sentences are in "sentence" or "fee", "opinion" or "sub" 
+
+        # The resulting sentences are in "sentence", rename them to "fee", "opinion" or "sub" 
         res_df.rename(columns={'sentence': query_type}, inplace=True)
 
+    res_df = get_sorted_res(res_df, search_method)
     res_json = get_formatted_res(res_df, query_dict, result_dict)
 
     return res_json
