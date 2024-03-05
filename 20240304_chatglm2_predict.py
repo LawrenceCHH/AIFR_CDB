@@ -5,6 +5,9 @@ import json
 import pandas as pd
 from tqdm import tqdm
 
+import subprocess
+import gc
+
 os.environ["CUDA_VISIBLE_DEVICES"]='0'#調整cuda號碼
 
 
@@ -16,7 +19,7 @@ def load_glm_checkpoint(checkpoint_path):
     # config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, pre_seq_len=1024)
     
     # tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
-    config = AutoConfig.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True, pre_seq_len=1024)
+    config = AutoConfig.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True, pre_seq_len=1024, output_hidden_states=True, output_attentions = True)
 
     # # model = AutoModel.from_pretrained("/content/drive/MyDrive/share_p/20230416_chatglm6b_model", config=config, trust_remote_code=True)
     model = AutoModel.from_pretrained(llm_path, config=config, trust_remote_code=True)
@@ -43,6 +46,28 @@ def read_json(json_path):
         keys = [key for key in json_list[0].keys()]
         print(f"json length:{len(json_list)}\njson keys:{keys}")
     return json_list
+def get_mean_pooling_embedding(input_text, tokenizer, model):
+    torch.cuda.empty_cache()
+    gc.collect()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    inputs = tokenizer(input_text, return_tensors="pt", add_special_tokens=True, return_attention_mask=True, truncation=True, max_length=2048)
+    inputs = {k:v.to(device) for k,v in inputs.items()}
+    # print(len(inputs['input_ids'][0]))
+
+    with torch.no_grad():
+        torch.cuda.empty_cache()
+        gc.collect()
+        outputs = model(**inputs)
+    # hidden state shape (batch_size, sequence_length, hidden_size)
+    # (input_tokens_length, 1, 4096)
+    last_hidden_state = outputs[2][-1]
+    input_tokens_length = last_hidden_state.shape[0]
+    # (1, 4096)
+    embedding = torch.sum(last_hidden_state, 0)
+    embedding = embedding[0] / input_tokens_length
+    torch.cuda.empty_cache()
+    gc.collect()
+    return embedding
 
 start_point=0
 end_point=0
@@ -64,11 +89,17 @@ tokenizer = AutoTokenizer.from_pretrained("/workspace/LLM/chatglm2-6b", trust_re
 count_for_output = 50
 
 # -----------------------------
-
-prediction_df = pd.read_csv(prediction_csv_path)[start_point:]#[start_point:]#[1615614:1822495]  #改數量/區間0   [0:1000] 之類的 到1822494
-# Create initial csv
+# Set start point to the length of output_csv_path
+prediction_df = pd.read_csv(prediction_csv_path)
 source_csv_columns = list(prediction_df.keys()) + checkpoint_nums
-pd.DataFrame(columns=source_csv_columns).to_csv(output_csv_path, index=False, encoding="utf-8-sig")
+if os.path.isfile(output_csv_path):
+    start_point = int(subprocess.check_output(f"wc -l {output_csv_path}", shell=True).split()[0]) - 1
+    print(f'File existed: {output_csv_path}\n File length: {start_point}\n')
+else:
+    # Create initial csv
+    
+    pd.DataFrame(columns=source_csv_columns).to_csv(output_csv_path, index=False, encoding="utf-8-sig")
+prediction_df = prediction_df[start_point:]#[start_point:]#[1615614:1822495]  #改數量/區間0   [0:1000] 之類的 到1822494
 
 # 20230621 modified - periodically save
 from transformers import AutoTokenizer
@@ -92,21 +123,27 @@ for str_num in checkpoint_nums:
     for data_index in tqdm(range(len(prediction_df))):
         count+=1
         input_text = str(prediction_df.iloc[data_index]["sentence"])#原sentence for 主文庫改input_text=input_text[0:1000]   #改
-        input_text=input_text[0:1024].replace(r"\n","").replace(r"\r","").replace(r"\u3000","")
-        
+        # input_text=input_text[0:1024].replace(r"\n","").replace(r"\r","").replace(r"\u3000","")
+        input_text=input_text[0:1024]
 
         prediction, history = merged_model.chat(tokenizer, input_text, history=[])
         # prediction_df.loc[data_index, str_num] = prediction        
         tmp_df.loc[len(tmp_df)] = prediction_df.iloc[data_index]
         tmp_df.loc[len(tmp_df)-1, str_num] = prediction
-        
+
+
+        # tmp_data = prediction_df.iloc[data_index].copy()
+        # tmp_data[str_num] = prediction
+        # tmp_data = pd.DataFrame([tmp_data])
+        # tmp_data.to_csv(output_csv_path, encoding='utf-8-sig', mode='a', index=False, header=False)
+
         current_count += 1
         if current_count>=count_for_output:
             #tmp_df.to_csv(output_csv_path, mode="a", index=False, header=False, encoding="utf-8-sig")
             tmp_df.to_csv(output_csv_path, mode="a", index=False, header=False, encoding="utf-8-sig")
             tmp_df = pd.DataFrame(columns=source_csv_columns)
             current_count = 0
-    #tmp_df.to_csv(output_csv_path, mode="a", index=False, header=False, encoding="utf-8-sig")
+
     tmp_df.to_csv(output_csv_path, mode="a", index=False, header=False, encoding="utf-8-sig")
     tmp_df = pd.DataFrame(columns=source_csv_columns)
     current_count = 0

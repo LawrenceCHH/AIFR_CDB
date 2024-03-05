@@ -46,17 +46,17 @@ def read_json(json_path):
 
 start_point=0
 end_point=0
-prediction_csv_path = r"/workspace/data/CDB_20240304/110juds_nosimple_paragraph.csv" #改
+prediction_csv_path = r"/workspace/data/CDB_20240304/110juds_nosimple_sentence.csv" #改
 # output_df = pd.DataFrame(columns=csv_columns)
 # for index, line in enumerate(test_list):
 #     output_df.loc[len(output_df)] = [test_list[index]["content"], test_list[index]["summary"]]
 # output_df.to_csv(prediction_csv_path, index=False, encoding="utf-8-sig")
-checkpoint_path = r"/workspace/data/CDB_20240304/0303_PARAGRAPH_sub/checkpoint-{}"  #改
-checkpoint_nums = [str(num) for num in range(500,550,50)]    #留意
+checkpoint_path = r"/workspace/data/CDB_20240304/20230620_724td_opinion_-6b-pt-token-1024-3e-3_0818/checkpoint-{}"  #改
+checkpoint_nums = [str(num) for num in range(1200,1250,50)]    #留意
 #改!!!!!!!!!否則覆蓋!!!!!!!!!
 #改!!!!!!!!!否則覆蓋!!!!!!!!!
 #改!!!!!!!!!否則覆蓋!!!!!!!!!
-output_csv_path = r"/workspace/data/CDB_20240304/20240304_predicted/20240304_category_sub.csv"   #改
+output_csv_path = r"/workspace/data/CDB_20240304/20240304_predicted/20240304_category_opinion.csv"   #改
 #改!!!!!!!!!否則覆蓋!!!!!!!!!
 #改!!!!!!!!!否則覆蓋!!!!!!!!!
 #改!!!!!!!!!否則覆蓋!!!!!!!!!
