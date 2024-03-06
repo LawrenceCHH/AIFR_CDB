@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = True
+on_server = False
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -324,12 +324,12 @@ async def lifespan(app: FastAPI):
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
     if on_server:
-        main_basic_df = pd.read_csv('~/workspace/111資料/db_loaded/20240228_main_basic.csv')
+        main_basic_df = pd.read_csv('~/workspace/111資料/db_loaded/20240306_main_basic.csv')
         opinion_df = pd.read_csv('~/workspace/111資料/db_loaded/20240120_category_opinion.csv')
         sub_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_sub.csv')
         fee_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_fee.csv')
     else:
-        main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240228_main_basic.csv')
+        main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240306_main_basic.csv')
         opinion_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_category_opinion.csv')
         sub_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_sub.csv')
         fee_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_fee.csv')
@@ -358,7 +358,7 @@ async def lifespan(app: FastAPI):
         db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
 
     # Remove unnecessary column
-    main_basic_df.drop(['basic_info_20240120', "Unnamed: 0.1", "Unnamed: 0"], axis=1, inplace=True)
+    main_basic_df.drop(['basic_info_20240120'], axis=1, inplace=True)
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
@@ -368,9 +368,11 @@ async def lifespan(app: FastAPI):
     # Clean up the models and release the resources
     preloaded_data.clear()
 
-# domain = 'https://5737-140-114-83-23.ngrok-free.app' + '/'
-# domain = '127.0.0.1:8000' + '/'
-domain = 'https://140.114.80.195:6127' + '/'
+
+if on_server:
+    domain = 'https://140.114.80.195:6127' + '/'
+else:
+    domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
 
 app = FastAPI(lifespan=lifespan)
 if on_server:
