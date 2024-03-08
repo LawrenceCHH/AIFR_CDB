@@ -69,8 +69,6 @@ def get_mean_pooling_embedding(input_text, tokenizer, model):
     gc.collect()
     return embedding
 
-start_point=0
-end_point=0
 prediction_csv_path = r"/workspace/data/CDB_20240304/110juds_nosimple_sentence-no,space-reverse.csv" #改
 # output_df = pd.DataFrame(columns=csv_columns)
 # for index, line in enumerate(test_list):
@@ -88,15 +86,19 @@ output_csv_path = r"/workspace/data/CDB_20240304/20240304_predicted/20240306_cat
 #改!!!!!!!!!否則覆蓋!!!!!!!!!
 tokenizer = AutoTokenizer.from_pretrained("/workspace/LLM/chatglm2-6b", trust_remote_code=True)
 count_for_output = 50
-
 # -----------------------------
 # Set start point to the length of output_csv_path
 prediction_df = pd.read_csv(prediction_csv_path)
 source_csv_columns = list(prediction_df.keys()) + checkpoint_nums
 if os.path.isfile(output_csv_path):
-    start_point = int(subprocess.check_output(f"wc -l {output_csv_path}", shell=True).split()[0]) - 1
+    # start_point = int(subprocess.check_output(f"wc -l {output_csv_path}", shell=True).split()[0]) - 1
+    tmp_df = pd.read_csv(output_csv_path)
+    start_point = len(tmp_df)
+    del tmp_df
     print(f'File existed: {output_csv_path}\n File length: {start_point}\n')
 else:
+    start_point=0
+
     # Create initial csv
     
     pd.DataFrame(columns=source_csv_columns).to_csv(output_csv_path, index=False, encoding="utf-8-sig")
@@ -128,6 +130,7 @@ for str_num in checkpoint_nums:
         input_text=input_text[0:1024]
 
         prediction, history = merged_model.chat(tokenizer, input_text, history=[])
+        # prediction = data_index
         # prediction_df.loc[data_index, str_num] = prediction        
         tmp_df.loc[len(tmp_df)] = prediction_df.iloc[data_index]
         tmp_df.loc[len(tmp_df)-1, str_num] = prediction
