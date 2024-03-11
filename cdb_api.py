@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = False
+on_server = True
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -375,6 +375,25 @@ else:
     domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
 
 app = FastAPI(lifespan=lifespan)
+# from starlette.responses import FileResponse 
+# @app.get("/")
+# async def read_index():
+#     return FileResponse('/home/lawrencechh/AIFR_CDB/ai-annotated-judgment-database/index.html')
+
+from fastapi.staticfiles import StaticFiles
+app.mount('/', StaticFiles(directory='ai-annotated-judgment-database', html=True), name='ai-annotated-judgment-database')
+
+# from fastapi import FastAPI, Request
+# from fastapi.templating import Jinja2Templates 
+# from fastapi.staticfiles import StaticFiles   
+# #static files & load
+# app.mount("/", StaticFiles(directory="./", html = True), name="") 
+# templates = Jinja2Templates(directory="./")
+
+# @app.get("/")
+# async def serve_home(request: Request):
+#     return templates.TemplateResponse("index.html", {"request": request})
+
 if on_server:
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ssl_context.load_cert_chain('/home/lawrencechh/AIFR_CDB_keys/cert.pem', keyfile='/home/lawrencechh/AIFR_CDB_keys/key.pem')
