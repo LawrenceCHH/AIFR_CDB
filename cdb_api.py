@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = True
+on_server = False
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -329,10 +329,10 @@ async def lifespan(app: FastAPI):
         sub_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_sub.csv')
         fee_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_fee.csv')
     else:
-        main_basic_df = pd.read_csv('/workspace/111資料/db_loaded/20240306_main_basic.csv')
-        opinion_df = pd.read_csv('/workspace/111資料/db_loaded/20240120_category_opinion.csv')
-        sub_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_sub.csv')
-        fee_df = pd.read_csv('/workspace/111資料/db_loaded/20240225_category_fee.csv')
+        main_basic_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240306_main_basic.csv')
+        opinion_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240120_category_opinion.csv')
+        sub_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240225_category_sub.csv')
+        fee_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240225_category_fee.csv')
 
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
     if load_LLM:
@@ -380,8 +380,8 @@ app = FastAPI(lifespan=lifespan)
 # async def read_index():
 #     return FileResponse('/home/lawrencechh/AIFR_CDB/ai-annotated-judgment-database/index.html')
 
-from fastapi.staticfiles import StaticFiles
-app.mount('/', StaticFiles(directory='ai-annotated-judgment-database', html=True), name='ai-annotated-judgment-database')
+# from fastapi.staticfiles import StaticFiles
+# app.mount('/', StaticFiles(directory='ai-annotated-judgment-database', html=True), name='ai-annotated-judgment-database')
 
 # from fastapi import FastAPI, Request
 # from fastapi.templating import Jinja2Templates 
