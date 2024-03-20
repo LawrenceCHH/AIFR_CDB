@@ -622,6 +622,7 @@ class JSONAPIPage(AbstractPage[T], Generic[T]):
             **kwargs,
         )
 # Get method
+# 強制回傳的物件內容
 class JUD_item(BaseModel):
     
     EID: int | None = None
@@ -649,6 +650,7 @@ class JUD_item(BaseModel):
 
 
 @app.get("/api/search")
+# 輸入所需的參數
 async def search(
     search_method: str,
     page: str,
@@ -662,13 +664,10 @@ async def search(
     opinion: str | None = None, 
     fee: str | None = None, 
     sub: str | None = None, 
-    # jud_full: str | None = None, 
+    jud_full: str | None = None, 
     )-> JSONAPIPage[JUD_item]:
-    # jud_full
-    # res_json = await search_all(search_method, court_type, jud_date, basic_info, syllabus, opinion, fee, sub, jud_full)
-    # request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
-    res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub)
-    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
+    res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub, jud_full)
+    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
     request_url_prefix = domain + 'api/search/' + "?" + "".join([f'{key}={request_params[key]}&' for key in request_params.keys() if request_params[key]!=None])
     paged_res_json = paginate(res_json["data"], additional_data={'query_info': res_json['query_info'], 'condition_info': res_json['condition_info'], 'summary': res_json['summary'], 'request_url_prefix': request_url_prefix})
 
