@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = False
+on_server = True
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -370,18 +370,19 @@ async def lifespan(app: FastAPI):
 
 
 if on_server:
-    domain = 'https://140.114.80.195:6127' + '/'
+    # domain = 'http://140.114.80.195:6127' + '/'
+    # domain = 'http://127.0.0.1:6123' + '/'
+    domain = 'http://140.114.80.195:6128' + '/'
 else:
     domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+
 # from starlette.responses import FileResponse 
 # @app.get("/")
 # async def read_index():
 #     return FileResponse('/home/lawrencechh/AIFR_CDB/ai-annotated-judgment-database/index.html')
 
-# from fastapi.staticfiles import StaticFiles
-# app.mount('/', StaticFiles(directory='ai-annotated-judgment-database', html=True), name='ai-annotated-judgment-database')
 
 # from fastapi import FastAPI, Request
 # from fastapi.templating import Jinja2Templates 
@@ -394,10 +395,9 @@ app = FastAPI(lifespan=lifespan)
 # async def serve_home(request: Request):
 #     return templates.TemplateResponse("index.html", {"request": request})
 
-if on_server:
-    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ssl_context.load_cert_chain('/home/lawrencechh/AIFR_CDB_keys/cert.pem', keyfile='/home/lawrencechh/AIFR_CDB_keys/key.pem')
-# app = FastAPI()
+# if on_server:
+#     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+#     ssl_context.load_cert_chain('/home/lawrencechh/AIFR_CDB_keys/cert.pem', keyfile='/home/lawrencechh/AIFR_CDB_keys/key.pem')
 
 
 
@@ -410,7 +410,8 @@ if on_server:
 #     '*'
 # ]
 origins = [
-    '*'
+    # '*',
+    '140.114.80.195'
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -696,3 +697,14 @@ async def get_jud_from_id(id):
     # return JUD_item(**jud)
     return jud
 add_pagination(app)
+
+
+from fastapi.staticfiles import StaticFiles
+# app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
+app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
+
+
+import uvicorn
+if __name__ == '__main__':
+    # uvicorn.run('cdb_api:app', host="127.0.0.1", port=6128)
+    uvicorn.run('cdb_api:app', host="140.114.80.195", port=6128)
