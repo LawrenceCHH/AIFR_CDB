@@ -700,8 +700,8 @@ add_pagination(app)
 
 
 from fastapi.staticfiles import StaticFiles
-# app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
-app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
+app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
+# app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
 
 
 import uvicorn
