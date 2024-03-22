@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = True
+on_server = False
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -329,10 +329,10 @@ async def lifespan(app: FastAPI):
         sub_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_sub.csv')
         fee_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_fee.csv')
     else:
-        main_basic_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240306_main_basic.csv')
-        opinion_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240120_category_opinion.csv')
-        sub_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240225_category_sub.csv')
-        fee_df = pd.read_csv('/workspace/data/111資料/db_loaded/20240225_category_fee.csv')
+        main_basic_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240320_110_basic_info.csv')
+        opinion_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_opinion.csv')
+        sub_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_sub.csv')
+        fee_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_fee.csv')
 
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
     if load_LLM:
@@ -358,7 +358,7 @@ async def lifespan(app: FastAPI):
         db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
 
     # Remove unnecessary column
-    main_basic_df.drop(['basic_info_20240120'], axis=1, inplace=True)
+    # main_basic_df.drop(['basic_info_20240120'], axis=1, inplace=True)
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
@@ -370,10 +370,12 @@ async def lifespan(app: FastAPI):
 
 
 if on_server:
-    # domain = 'http://140.114.80.195:6127' + '/'
-    # domain = 'http://127.0.0.1:6123' + '/'
-    domain = 'http://140.114.80.195:6128' + '/'
+
+    domain_setting = {'host': '140.114.80.195', 'port': 6128}
+    domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
 else:
+    domain_setting = {'host': '127.0.0.1', 'port': 8000}
+    # domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
     domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
@@ -700,11 +702,17 @@ add_pagination(app)
 
 
 from fastapi.staticfiles import StaticFiles
-app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
-# app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
+if on_server:
+    app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
+    # app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
+else:
+    # app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/dist', html=True))
+    app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/test', html=True))
 
 
 import uvicorn
 if __name__ == '__main__':
     # uvicorn.run('cdb_api:app', host="127.0.0.1", port=6128)
-    uvicorn.run('cdb_api:app', host="140.114.80.195", port=6128)
+    # uvicorn.run('cdb_api:app', host="140.114.80.195", port=6128)
+    print(domain_setting['host'])
+    uvicorn.run('cdb_api:app', host=domain_setting['host'], port=domain_setting['port'])

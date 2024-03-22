@@ -1,8 +1,8 @@
 async function show_query_result(clicked_button_name){
   // domain = 'https://5737-140-114-83-23.ngrok-free.app/api/search/all?'
-  // domain = 'http://127.0.0.1:6123/api/search/all?'
+  domain = 'http://127.0.0.1:8000/api/search/all?'
   // domain = 'https://140.114.80.195:6127/api/search/all?'
-  domain = 'http://140.114.80.195:6128/api/search/all?'
+  // domain = 'http://140.114.80.195:6128/api/search/all?'
   query_type = document.getElementsByName('query_type')
   for (var radio of query_type){
     if (radio.checked){
