@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = False
+on_server = True
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -411,10 +411,15 @@ app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 #     "http://localhost:8000",
 #     '*'
 # ]
-origins = [
-    '*',
-    # '140.114.80.195'
-]
+if on_server:
+    origins = [
+        # '*',
+        '140.114.80.195'
+    ]
+else:
+    origins = [
+        '*',
+    ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -703,7 +708,8 @@ add_pagination(app)
 
 from fastapi.staticfiles import StaticFiles
 if on_server:
-    app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
+    # app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
+    app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/20240324_dist', html=True), name='ai-annotated-judgment-database')
     # app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
 else:
     # app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/dist', html=True))
