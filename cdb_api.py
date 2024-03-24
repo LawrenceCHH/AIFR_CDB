@@ -324,10 +324,10 @@ async def lifespan(app: FastAPI):
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
     if on_server:
-        main_basic_df = pd.read_csv('~/workspace/111資料/db_loaded/20240306_main_basic.csv')
-        opinion_df = pd.read_csv('~/workspace/111資料/db_loaded/20240120_category_opinion.csv')
-        sub_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_sub.csv')
-        fee_df = pd.read_csv('~/workspace/111資料/db_loaded/20240225_category_fee.csv')
+        main_basic_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240320_110_basic_info.csv')
+        opinion_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_opinion.csv')
+        sub_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_sub.csv')
+        fee_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_fee.csv')
     else:
         main_basic_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240320_110_basic_info.csv')
         opinion_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_opinion.csv')
@@ -719,5 +719,6 @@ if __name__ == '__main__':
 # ngrok tunnel --label edge=edghts_2b8EWy9H5bevmDCX2UwiHmpksel http://localhost:8000
 # CHH python cdb_api.py
 # Server
-# 
+# pm2 start cdb_api.py --name cdb
+
     
