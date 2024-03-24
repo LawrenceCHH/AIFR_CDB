@@ -716,3 +716,8 @@ if __name__ == '__main__':
     # uvicorn.run('cdb_api:app', host="140.114.80.195", port=6128)
     print(domain_setting['host'])
     uvicorn.run('cdb_api:app', host=domain_setting['host'], port=domain_setting['port'])
+# ngrok tunnel --label edge=edghts_2b8EWy9H5bevmDCX2UwiHmpksel http://localhost:8000
+# CHH python cdb_api.py
+# Server
+# 
+    

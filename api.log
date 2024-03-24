@@ -18,3 +18,16 @@
 2024-03-22 14:47:24,616 - INFO - 127.0.0.1:32818 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
 2024-03-22 14:47:53,405 - INFO - 127.0.0.1:32824 - "GET /api/search/all?search_method=keyword&sub=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
 2024-03-22 14:48:03,810 - INFO - 127.0.0.1:39496 - "GET /api/search/all?search_method=keyword&fee=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:07:24,081 - INFO - 127.0.0.1:32994 - "GET / HTTP/1.1" 200
+2024-03-24 13:07:24,127 - INFO - 127.0.0.1:32994 - "GET /test.css HTTP/1.1" 200
+2024-03-24 13:07:24,137 - INFO - 127.0.0.1:32998 - "GET /test_datatable.js HTTP/1.1" 200
+2024-03-24 13:07:25,163 - INFO - 127.0.0.1:32998 - "GET /favicon.ico HTTP/1.1" 404
+2024-03-24 13:07:29,433 - INFO - 127.0.0.1:33010 - "GET /api/search/all?search_method=keyword&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:19:58,211 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&jud_date=20220120-20220126&case_num=%E7%AC%AC130%E8%99%9F&case_type=%E6%AE%BA%E4%BA%BA%E6%9C%AA%E9%81%82&basic_info=%E8%A8%B1%E4%BB%B2%E7%91%A9&syllabus=%E9%A7%81%E5%9B%9E&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:19:58,392 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&jud_date=20220120-20220126&case_num=%E7%AC%AC130%E8%99%9F&case_type=%E6%AE%BA%E4%BA%BA%E6%9C%AA%E9%81%82&basic_info=%E8%A8%B1%E4%BB%B2%E7%91%A9&syllabus=%E9%A7%81%E5%9B%9E&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:19:58,520 - INFO - 140.114.83.23:0 - "GET /favicon.ico HTTP/1.1" 404
+2024-03-24 13:20:47,500 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&jud_date=20220120-20220126&case_num=%E7%AC%AC130%E8%99%9F&case_type=%E6%AE%BA%E4%BA%BA%E6%9C%AA%E9%81%82&syllabus=%E9%A7%81%E5%9B%9E&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:20:50,360 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&jud_date=20220120-20220126&case_num=%E7%AC%AC130%E8%99%9F&case_type=%E6%AE%BA%E4%BA%BA%E6%9C%AA%E9%81%82&syllabus=%E9%A7%81%E5%9B%9E&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:20:56,532 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&jud_date=20220120-20220126&case_num=%E7%AC%AC130%E8%99%9F&case_type=%E6%AE%BA%E4%BA%BA%E6%9C%AA%E9%81%82&syllabus=%E9%A7%81%E5%9B%9E&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:21:06,552 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&jud_date=20220120-20220126&case_type=%E6%AE%BA%E4%BA%BA%E6%9C%AA%E9%81%82&syllabus=%E9%A7%81%E5%9B%9E&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-03-24 13:21:18,244 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=%E6%9C%80%E9%AB%98%E6%B3%95%E9%99%A2&case_type=%E6%AE%BA%E4%BA%BA%E6%9C%AA%E9%81%82&syllabus=%E9%A7%81%E5%9B%9E&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
