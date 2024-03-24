@@ -412,8 +412,8 @@ app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 #     '*'
 # ]
 origins = [
-    # '*',
-    '140.114.80.195'
+    '*',
+    # '140.114.80.195'
 ]
 app.add_middleware(
     CORSMiddleware,
