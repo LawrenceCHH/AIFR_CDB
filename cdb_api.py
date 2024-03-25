@@ -414,7 +414,9 @@ app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 if on_server:
     origins = [
         # '*',
-        '140.114.80.195'
+        '140.114.80.195',
+        'https://jerry914.github.io',
+        'https://jerry914.github.io/ai-annotated-judgment-database',
     ]
 else:
     origins = [
