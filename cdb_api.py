@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = True
+on_server = False
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
@@ -435,7 +435,7 @@ app.add_middleware(
 
 # class JUD(BaseModel):
 #     court_type: str | None = None
-#     jud_date: int | None = None
+#     jud_date: str | None = None
 #     # case_type and basic_info are merged to one paragraph
 #     basic_info: str | None = None
     
@@ -479,7 +479,7 @@ app.add_middleware(
 async def search_all(
     search_method: str,
     court_type: str | None = None, 
-    jud_date: int | None = None, 
+    jud_date: str | None = None, 
     # jud_date: str | None = None, 
     case_num: str | None = None, 
     case_type: str | None = None, 
@@ -640,7 +640,7 @@ class JUD_item(BaseModel):
     UID: int 
     JID: str 
     court_type: str 
-    jud_date: int 
+    jud_date: str 
     # case_type and basic_info are merged to one paragraph
     case_num: str | None = None
     case_type: str | None = None
@@ -667,7 +667,7 @@ async def search(
     page: str,
     size: str,
     court_type: str | None = None, 
-    jud_date: int | None = None, 
+    jud_date: str | None = None, 
     case_num: str | None = None,
     case_type: str | None = None,
     basic_info: str | None = None, 
