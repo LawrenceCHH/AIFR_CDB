@@ -35,7 +35,7 @@ import logging
 import ssl
 
 load_LLM = False
-on_server = False
+on_server = True
 
 def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
     config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
