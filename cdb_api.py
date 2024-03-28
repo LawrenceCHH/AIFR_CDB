@@ -539,6 +539,7 @@ async def search_all(
 
         # The resulting sentences are in "sentence", rename them to "fee", "opinion" or "sub" 
         res_df.rename(columns={'sentence': query_type}, inplace=True)
+    res_df['jud_date'] = res_df['jud_date'].astype(str)
 
     res_df = get_sorted_res(res_df, search_method)
     res_json = get_formatted_res(res_df, query_dict, result_dict)
