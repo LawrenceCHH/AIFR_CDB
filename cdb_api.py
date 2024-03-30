@@ -31,7 +31,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 # Log
 import logging
-
+from fastapi import Header
 import ssl
 
 load_LLM = False
@@ -318,9 +318,11 @@ async def lifespan(app: FastAPI):
     # Use vector or not
 
 
-    # Load data
     logger = logging.getLogger("uvicorn.access")
-    handler = logging.handlers.RotatingFileHandler("api.log",mode="a",maxBytes = 100*1024, backupCount = 3)
+    if on_server:
+        handler = logging.handlers.RotatingFileHandler("verdictdb_api.log",mode="a",maxBytes = 100*1024*1024, backupCount = 10)
+    else:
+        handler = logging.handlers.RotatingFileHandler("verdictdb_api_chh.log",mode="a",maxBytes = 100*1024*1024, backupCount = 10)
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
     if on_server:
@@ -708,7 +710,10 @@ async def get_jud_from_id(id):
     # return JUD_item(**jud)
     return jud
 add_pagination(app)
-
+# @app.get('/testip')
+# def index(real_ip: str = Header(None, alias='X-Real-IP')):
+#     print(real_ip)
+#     return real_ip
 
 from fastapi.staticfiles import StaticFiles
 if on_server:
@@ -720,12 +725,13 @@ if on_server:
 #     app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/20240328_2_dist', html=True))
 
 
+
 import uvicorn
 if __name__ == '__main__':
     # uvicorn.run('cdb_api:app', host="127.0.0.1", port=6128)
     # uvicorn.run('cdb_api:app', host="140.114.80.195", port=6128)
     print(domain_setting['host'])
-    uvicorn.run('cdb_api:app', host=domain_setting['host'], port=domain_setting['port'])
+    uvicorn.run('cdb_api:app', host=domain_setting['host'], port=domain_setting['port'], forwarded_allow_ips='*')
 # ngrok tunnel --label edge=edghts_2b8EWy9H5bevmDCX2UwiHmpksel http://localhost:8000
 # CHH python cdb_api.py
 # Server

@@ -1,0 +1,1 @@
+2024-03-30 16:07:29,925 - INFO - 118.165.24.212:0 - "GET /api/search?search_method=keyword&page=1&size=10&jud_date=20210101-20211231&opinion=%E6%AE%BA%E4%BA%BA HTTP/1.0" 200
