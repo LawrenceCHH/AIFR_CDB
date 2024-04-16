@@ -720,9 +720,15 @@ if on_server:
     # app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
     app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/20240328_3_dist', html=True), name='ai-annotated-judgment-database')
     # app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
-# else:
-#     # app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/dist', html=True))
-#     app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/20240328_2_dist', html=True))
+else:
+    # # Redirect
+    # from fastapi.responses import RedirectResponse
+    # @app.get("/ai-annotated-judgment-database/")
+    # async def redirect():
+    #     response = RedirectResponse(url='/')
+    #     return response
+
+    app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/20240328_3_dist', html=True))
 
 
 
