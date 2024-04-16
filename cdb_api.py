@@ -718,7 +718,7 @@ add_pagination(app)
 from fastapi.staticfiles import StaticFiles
 if on_server:
     # app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/dist', html=True), name='ai-annotated-judgment-database')
-    app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/20240328_3_dist', html=True), name='ai-annotated-judgment-database')
+    app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/frontend_deployment/20240416_dist', html=True), name='ai-annotated-judgment-database')
     # app.mount('/', StaticFiles(directory='/home/lawrencechh/AIFR_CDB/test', html=True))
 else:
     # # Redirect
@@ -728,7 +728,7 @@ else:
     #     response = RedirectResponse(url='/')
     #     return response
 
-    app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/20240328_3_dist', html=True))
+    app.mount('/', StaticFiles(directory='/workspace/Projects/AIFR_CDB/frontend_deployment/20240416_dist', html=True))
 
 
 
