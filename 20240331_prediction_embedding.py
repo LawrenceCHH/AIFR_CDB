@@ -155,7 +155,7 @@ for target_df_index in range(len(target_df_paths)):
             current_count = 0
 
 # Start from server
-# pm2 start 20240331_prediction_embedding.py --interpreter=/cluster/home/lawrencechh.cs/miniconda3/envs/chatglm2_env/bin/python            
+# pm2 start 20240331_prediction_embedding.py --name prediction --interpreter=/cluster/home/lawrencechh.cs/miniconda3/envs/chatglm2_env/bin/python   
         
 
     
