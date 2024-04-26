@@ -19,8 +19,11 @@ import re
 async def redirect_all_requests_to_frontend(request: Request, exc: HTTPException):
  
     request_url = str(request.url)
+    splitted_url = request_url.split('/')[3]
+    splitted_url = 'search-result?' if splitted_url.startswith('search-result?') else splitted_url
+
     vue_router_paths = ['about', 'search-result?', 'members']
-    path_validated = request_url.split('/')[3] in vue_router_paths
+    path_validated = splitted_url in vue_router_paths
     if path_validated:
         return HTMLResponse(open("/workspace/Projects/AIFR_CDB/frontend_deployment/20240416_dist/index.html").read())
     else:
