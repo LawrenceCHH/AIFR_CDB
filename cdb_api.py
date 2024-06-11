@@ -44,37 +44,6 @@ import re
 on_server = False
 
 
-def get_filtered_res_data(faiss_df, condition="", filter_mode=0):
-    # 篩選出符合faiss_result的結果
-    # faiss_df = df.iloc[faiss_result[0]].copy()
-    # faiss_df['distance'] = faiss_result[1]
-    # faiss_df['order_index'] = range(0, len(faiss_df))
-    # faiss_df['show_unique_result'] = False
-    # faiss_df['jud_url'] = [f'https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id={JID}' for JID in faiss_df['JID']]
-
-    # 依欄位分組
-    grouped_df = faiss_df.groupby("distance")
-    # 取得分組後特定欄位的數目
-    same_opinion_count = grouped_df['sentence'].count().reset_index(name='opinion_count')
-    found_unique_data_num = 500
-    grouped_keys = list(grouped_df.groups.keys())[:found_unique_data_num]
-
-    # 依據distance篩選出前found_unique_data_num個unique的資料
-    limited_df = faiss_df[faiss_df['distance'].isin(grouped_keys)].copy()
-
-    # 計算同一個distance情況下共有幾個見解
-    same_opinion_count = same_opinion_count[:found_unique_data_num]
-    # 設定用於mapping的dict，key為distance，value為對應的opinion_count
-    same_opinion_dict = same_opinion_count.set_index(['distance']).to_dict()['opinion_count']
-    # print(same_opinion_dict)
-
-    #依據不同的distance指派特定的opinion_count
-    limited_df['same_distance_num'] = limited_df['distance'].map(same_opinion_dict)
-
-    # 找出各組第一筆資料，設定其show_unique_result為True，讓前端根據此數值過濾掉其他多餘的資料，若需要全部資料呈現也可以保留
-    limited_df['show_unique_result'].mask(limited_df['order_index'].isin(grouped_df.first()['order_index'].tolist()), True, inplace=True)
-
-    return limited_df
 def get_merged_df(main_basic_df, category_df, based_column='UID'):
     # category_df['order_index'] = range(len(category_df))
     # category_df['jud_url'] = [f'https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id={JID}' for JID in category_df['JID']]
@@ -214,11 +183,6 @@ def get_condition_filtered_dict(condition_dict, target_df):
             result_dict['available'].append([target_column, query_text])
             last_result_df = result_df.copy()
 
-    # Drop unwanted columns 
-    if len(result_df) > 0:
-        print(result_df.iloc[0])
-        result_df = result_df.drop('jud_full', axis=1)
-
     result_dict['result_df'] = result_df
     return result_dict
 
@@ -226,7 +190,6 @@ def get_condition_filtered_dict(condition_dict, target_df):
 preloaded_data = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Use vector or not
 
     logger = logging.getLogger("uvicorn.access")
     if on_server:
@@ -249,6 +212,7 @@ async def lifespan(app: FastAPI):
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
 
     # Remove unnecessary column
+    main_basic_df.drop(columns=['jud_full'])
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
@@ -265,10 +229,13 @@ if on_server:
     domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
 else:
     domain_setting = {'host': '127.0.0.1', 'port': 8000}
-    # domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
-    domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
+    domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
+    # domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
 
-app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+if on_server:
+    app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+else:
+    app = FastAPI(lifespan=lifespan)
 
 # origins = [
 #     domain,
@@ -310,14 +277,14 @@ async def search_all(
     opinion: str | None = None, 
     fee: str | None = None, 
     sub: str | None = None, 
-    jud_full: str | None = None 
+    # jud_full: str | None = None 
     ):
     # jud_full
-    jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
+    jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
     
     # Frontend request only necessary input, other unused variable use null
     query_dict = {key: jud[key] for key in jud.keys() & {'fee', 'sub', 'opinion'} if jud[key]!=None}
-    condition_dict = {key: jud[key] for key in jud.keys() & {'court_type', 'jud_date', 'case_num', 'case_type', 'basic_info', 'syllabus', 'jud_full'} if jud[key]!=None}
+    condition_dict = {key: jud[key] for key in jud.keys() & {'court_type', 'jud_date', 'case_num', 'case_type', 'basic_info', 'syllabus'} if jud[key]!=None}
     search_method = jud['search_method']
 
     # Search juds with only conditions, category is not searched
@@ -331,7 +298,7 @@ async def search_all(
             res_df = res_df.merge(grouped_df[['UID', 'sentence']], on='UID', how='left')
             res_df['sentence'].fillna("無資料", inplace=True)
             res_df.rename(columns={'sentence': query_type}, inplace=True)
-        res_df = res_df[~((res_df['fee']=='無資料') & (res_df['sub']=='無資料') & (res_df['opinion']=='無資料'))]
+        res_df = res_df[~((res_df['fee']=='無資料') & (res_df['sub']=='無資料') & (res_df['opinion']=='無資料'))][:100]
    
     # Category is searched
     else:
@@ -340,11 +307,12 @@ async def search_all(
 
         if search_method=='keyword':
             res_df = get_keywords_df(query_text, preloaded_data['db'][query_type][0])
+
         # Check if df has data
         if len(res_df)>0:
             merged_df = get_merged_df(preloaded_data['main_basic_df'], res_df, based_column='UID')
             result_dict = get_condition_filtered_dict(condition_dict, merged_df)
-            res_df = result_dict['result_df']
+            res_df = result_dict['result_df'][:100]
 
             # Append additional data to res_df
             res_df['jud_date'] = res_df['jud_date'].astype(str)
@@ -475,16 +443,27 @@ async def search(
     case_type: str | None = None,
     basic_info: str | None = None, 
     syllabus: str | None = None, 
-    opinion: str | None = None, 
-    fee: str | None = None, 
-    sub: str | None = None, 
-    jud_full: str | None = None, 
+    category: str | None = None, 
+    # opinion: str | None = None, 
+    # fee: str | None = None, 
+    # sub: str | None = None, 
     )-> JSONAPIPage[JUD_item]:
-    res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub, jud_full)
-    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
-    request_url_prefix = domain + 'api/search/' + "?" + "".join([f'{key}={request_params[key]}&' for key in request_params.keys() if request_params[key]!=None])
-    paged_res_json = paginate(res_json["data"], additional_data={'query_info': res_json['query_info'], 'condition_info': res_json['condition_info'], 'summary': res_json['summary'], 'request_url_prefix': request_url_prefix})
+    # res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub)
 
+    for i in range(3):
+        reset_category = [None, None, None]
+        reset_category[i] = category
+        opinion, fee, sub = reset_category
+
+        res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub)
+        request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'category': category}
+        # # 待修改成三合一的搜尋格式
+        request_url_prefix = domain + 'api/search/' + "?" + "".join([f'{key}={request_params[key]}&' for key in request_params.keys() if request_params[key]!=None])
+        paged_res_json = paginate(res_json["data"], additional_data={'query_info': res_json['query_info'], 'condition_info': res_json['condition_info'], 'summary': res_json['summary'], 'request_url_prefix': request_url_prefix})
+        # print('------------')
+        # print(paged_res_json)
+        # print('------------')
+        
     return paged_res_json
 
 # Accept UID(int) or JID(str)
