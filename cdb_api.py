@@ -41,92 +41,8 @@ from pathlib import Path
 import re
 
 
-load_LLM = False
-on_server = True
-def load_ori_glm2(llm_path="/workspace/LLM/chatglm2-6b"):
-    config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, output_hidden_states=True, output_attentions = True)
-    model = AutoModel.from_pretrained(llm_path, config=config, trust_remote_code=True).quantize(4).half().cuda()
-    model = model.eval()
-    return model
+on_server = False
 
-def load_glm_checkpoint(checkpoint_path, llm_path):
-
-    # 载入Tokenizer
-    # tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
-    # config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, pre_seq_len=1024)
-
-    # tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
-    config = AutoConfig.from_pretrained(llm_path, trust_remote_code=True, pre_seq_len=1024, output_hidden_states=True, output_attentions = True)
-
-    # # model = AutoModel.from_pretrained("/content/drive/MyDrive/share_p/20230416_chatglm6b_model", config=config, trust_remote_code=True)
-    model = AutoModel.from_pretrained(llm_path, config=config, trust_remote_code=True)
-    print("Parameter Merging!")
-    prefix_state_dict = torch.load(os.path.join(checkpoint_path, "pytorch_model.bin"))
-
-    new_prefix_state_dict = {}
-    for k, v in prefix_state_dict.items():
-        if k.startswith("transformer.prefix_encoder."):
-            new_prefix_state_dict[k[len("transformer.prefix_encoder."):]] = v
-    model.transformer.prefix_encoder.load_state_dict(new_prefix_state_dict)
-    print("Model Quantizationing!")
-    model = model.quantize(4)
-    model = model.half().cuda()
-    model.transformer.prefix_encoder.float()
-    model = model.eval()
-    print("Model Loaded!")
-    return model
-
-# def get_opinion_embedding(query_text, tokenizer, model):
-#     query_text = query_text[:1500]
-#     embedding = get_mean_pooling_embedding(query_text, KeywordSearchConfig.tokenizer, KeywordSearchConfig.merged_model)
-#     return embedding
-
-def get_mean_pooling_embedding(input_text, tokenizer, model):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    inputs = tokenizer(input_text, return_tensors="pt", add_special_tokens=True, return_attention_mask=True)
-    inputs = {k:v.to(device) for k,v in inputs.items()}
-    with torch.no_grad():
-        outputs = model(**inputs)
-    # hidden state shape (batch_size, sequence_length, hidden_size)
-    # (input_tokens_length, 1, 4096)
-    last_hidden_state = outputs[2][-1]
-    input_tokens_length = last_hidden_state.shape[0]
-    # (1, 4096)
-    embedding = torch.sum(last_hidden_state, 0)
-    embedding = embedding[0] / input_tokens_length
-    embedding = embedding.to("cpu").numpy().astype(np.float32)
-    
-    return embedding
-
-def get_faiss_dataframe(query_embedding, query_index_flat, query_df, k=2048, mode='cpu', res_data_length=10000):
-    # 1, 4096
-    query_embedding = np.array([query_embedding])
-    # print(query_embedding.shape)
-
-    # if mode=='gpu':
-    #     D, I = KeywordSearchConfig.gpu_index_flat.search(query_embedding, k) 
-    #     result_indexes = I[0]
-    #     result_distances = D[0]
-    # elif mode=='cpu':
-    # tmp, D, I = query_index_flat.range_search(query_embedding, 2000) 
-    # output = sorted(zip(D, I))[:res_data_length]
-    # output = np.array(output)
-    # result_indexes = output[:, 1].tolist()
-    # result_distances = output[:, 0].tolist()
-
-    D, I = query_index_flat.search(query_embedding, 2000) 
-    result_indexes = I[0]
-    result_distances = D[0]
-
-    # print('result_indexes: ', len(result_indexes))
-
-    faiss_result = [result_indexes, result_distances]
-    faiss_df = query_df.iloc[faiss_result[0]].copy()
-    faiss_df['distance'] = faiss_result[1]
-    faiss_df['order_index'] = range(0, len(faiss_df))
-    faiss_df['show_unique_result'] = False
-    # faiss_df['jud_url'] = [f'https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id={JID}' for JID in faiss_df['JID']]
-    return faiss_df
 
 def get_filtered_res_data(faiss_df, condition="", filter_mode=0):
     # 篩選出符合faiss_result的結果
@@ -157,13 +73,6 @@ def get_filtered_res_data(faiss_df, condition="", filter_mode=0):
 
     # 找出各組第一筆資料，設定其show_unique_result為True，讓前端根據此數值過濾掉其他多餘的資料，若需要全部資料呈現也可以保留
     limited_df['show_unique_result'].mask(limited_df['order_index'].isin(grouped_df.first()['order_index'].tolist()), True, inplace=True)
-
-
-    # # 1 court
-    # if filter_mode==1:
-    #     limited_df = limited_df[limited_df['court']==condition]
-
-    # res_data = limited_df.to_dict(orient='records')
 
     return limited_df
 def get_merged_df(main_basic_df, category_df, based_column='UID'):
@@ -248,7 +157,6 @@ def get_formatted_res(res_df, query_dict, result_dict):
 
 
     # db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
-# 
     return res_json
 def get_keywords_df(query_text, target_df, target_column = 'sentence'):
     if query_text=="":
@@ -314,15 +222,11 @@ def get_condition_filtered_dict(condition_dict, target_df):
     result_dict['result_df'] = result_df
     return result_dict
 
-llm_path = r"/workspace/LLM/chatglm2-6b"
 
-preloaded_data = {
-
-}
+preloaded_data = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Use vector or not
-
 
     logger = logging.getLogger("uvicorn.access")
     if on_server:
@@ -343,30 +247,8 @@ async def lifespan(app: FastAPI):
         fee_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_fee.csv')
 
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
-    if load_LLM:
-        import torch
-        from transformers import AutoConfig, AutoModel, AutoTokenizer
-        import faiss
-
-        ori_glm2_model = load_ori_glm2(llm_path)
-        tokenizer = AutoTokenizer.from_pretrained(llm_path, trust_remote_code=True)
-        if on_server:
-            opinion_flat = faiss.read_index('~/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
-            fee_flat = faiss.read_index('~/workspace/111資料/db_loaded/20240225_embedding_fee.bin')
-            sub_flat = faiss.read_index('~/workspace/111資料/db_loaded/20240225_embedding_sub.bin')
-        else:
-            opinion_flat = faiss.read_index('/workspace/111資料/db_loaded/0114_op_sentence_district_TARGET_embedding.bin')
-            fee_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_fee.bin')
-            sub_flat = faiss.read_index('/workspace/111資料/db_loaded/20240225_embedding_sub.bin')
-        preloaded_data['ori_glm2_model'] = ori_glm2_model
-        preloaded_data['tokenizer'] = tokenizer
-        preloaded_data['opinion_flat'] = opinion_flat
-        preloaded_data['fee_flat'] = fee_flat
-        preloaded_data['sub_flat'] = sub_flat
-        db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
 
     # Remove unnecessary column
-    # main_basic_df.drop(['basic_info_20240120'], axis=1, inplace=True)
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
@@ -415,57 +297,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-
-# class JUD(BaseModel):
-#     court_type: str | None = None
-#     jud_date: str | None = None
-#     # case_type and basic_info are merged to one paragraph
-#     basic_info: str | None = None
-    
-#     syllabus: str | None = None
-#     opinion: str | None = None
-#     fee: str | None = None
-#     sub: str | None = None
-#     jud_full: str | None = None
-#     # keyword or vector
-#     search_method: str 
-# @app.post("/api/search/all")
-# async def search_all(jud: JUD):
-   
-#     # Frontend request only necessary input, other unused variable use null
-#     query_dict = jud.model_dump(include=['fee', 'sub', 'opinion'], exclude_none=True, exclude_unset=True)
-#     condition_dict = jud.model_dump(include=['court_type', 'jud_date', 'basic_info', 'syllabus', 'jud_full'], exclude_none=True, exclude_unset=True)
-#     search_method = jud.search_method
-#     query_type, query_text = list(query_dict.items())[0]
-#     print(query_type, query_text, search_method)
-
-#     if search_method=='keyword':
-#         res_df = get_keywords_df(query_text, db[query_type][0])
-#     elif search_method=='vector':
-#         query_text = query_text[:1500]
-#         query_embedding = get_mean_pooling_embedding(query_text, tokenizer, ori_glm2_model)
-#         faiss_df = get_faiss_dataframe(query_embedding=query_embedding, query_index_flat=db[query_type][1], query_df=db[query_type][0])
-#         res_df = get_filtered_res_data(faiss_df, condition="", filter_mode=0)
-
-#     merged_df = get_merged_df(main_basic_df, res_df, based_column='UID')
-#     for key, value in condition_dict.items():
-#         print(key, value)
-#         merged_df = get_condition_filtered_dict(value, merged_df, key)
-#     res_json = get_formatted_res(res_df=merged_df, query_text=query_text, query_type=query_type)
-#     return res_json
-#     # print(list(query_dict.items()))
-#     # print(list(condition_dict.items()))
-#     # print(list(jud.model_dump().items()))
-
 # Get method
 @app.get("/api/search/all")
 async def search_all(
     search_method: str,
     court_type: str | None = None, 
     jud_date: str | None = None, 
-    # jud_date: str | None = None, 
     case_num: str | None = None, 
     case_type: str | None = None, 
     basic_info: str | None = None, 
@@ -477,7 +314,6 @@ async def search_all(
     ):
     # jud_full
     jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub, 'jud_full': jud_full}
-    # jud = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'basic_info':basic_info, 'syllabus':syllabus, 'opinion':opinion, 'fee':fee, 'sub':sub}
     
     # Frontend request only necessary input, other unused variable use null
     query_dict = {key: jud[key] for key in jud.keys() & {'fee', 'sub', 'opinion'} if jud[key]!=None}
@@ -504,11 +340,6 @@ async def search_all(
 
         if search_method=='keyword':
             res_df = get_keywords_df(query_text, preloaded_data['db'][query_type][0])
-        elif search_method=='vector':
-            query_embedding = get_mean_pooling_embedding(query_text[:1500], preloaded_data['tokenizer'], preloaded_data['ori_glm2_model'])
-            faiss_df = get_faiss_dataframe(query_embedding=query_embedding, query_index_flat=preloaded_data['db'][query_type][1], query_df=preloaded_data['db'][query_type][0])
-            res_df = get_filtered_res_data(faiss_df, condition="", filter_mode=0)
-
         # Check if df has data
         if len(res_df)>0:
             merged_df = get_merged_df(preloaded_data['main_basic_df'], res_df, based_column='UID')
@@ -546,12 +377,6 @@ class JSONAPIParams(BaseModel, AbstractParams):
     def to_raw_params(self) -> RawParams:
         return RawParams(limit=self.size, offset=self.size*(self.page-1))
 
-
-# class JSONAPIPageInfoMeta(BaseModel):
-#     total: int
-
-# class JSONAPIPageMeta(BaseModel):
-#     page: JSONAPIPageInfoMeta
 
 T = TypeVar("T")
 
@@ -591,18 +416,10 @@ class JSONAPIPage(AbstractPage[T], Generic[T]):
         else:
             total_pages = None
             
-        # next = f"?page={page + 1}&size={size}" if (page + 1) <= total_pages else "null"
         next = request_url_prefix + f"page={page + 1}&size={size}" if page * size < total else "null"
         previous = request_url_prefix + f"page={page - 1}&size={size}" if (page - 1) >= 1 else "null"
-        # next = request_url_prefix + f"page={page + 1}&size={size}" if page * size < total else request_url_prefix + f"page={page}&size={size}"
-        # previous = request_url_prefix + f"page={page - 1}&size={size}" if (page - 1) >= 1 else request_url_prefix + f"page={page}&size={size}"
-        # first={"page": 1},
-        # last={"page": ceil(total / size) if total > 0 and size > 0 else 1},
- 
 
         return cls(
-            # meta={'page': page, 'total':total, 'page':page, 'size':size, 'next' : next, 'previous' : previous, 'total_pages' : total_pages},
-            # meta={'page': page, 'total':total, 'page':page, 'size':size, 'next_page_url' : next, 'previous_page_url' : previous, 'total_pages' : total_pages},
             meta={
                 'page': page, 
                 'size':size, 
