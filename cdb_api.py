@@ -18,7 +18,7 @@ from fastapi_pagination.links import Page
 # Custom Page
 from typing import Any, Generic, Optional, Sequence, TypeVar
 
-from fastapi import Query
+from fastapi import Query, Depends
 from pydantic import BaseModel
 from typing_extensions import Self
 
@@ -54,7 +54,9 @@ def get_merged_df(main_basic_df, category_df, based_column='UID'):
     merged_df = category_df.merge(main_basic_df[target_basic_df_columns], on=based_column, how='left')
     return merged_df
 def get_sorted_res(res_df, search_method):
-    if search_method=='keyword':
+    if search_method=='keyword' and len(res_df)>0:
+        res_df['jud_date'] = res_df['jud_date'].astype(str)
+
         res_df.sort_values(by='jud_date', inplace=True)
 
     return res_df
@@ -122,8 +124,9 @@ def get_formatted_res(res_df, query_dict, result_dict):
 
             for index, summary_type in enumerate(res_json['summary']):
                 if summary_type["name"]==query_type_ch:
-                    res_json['summary'][index]['count'] = len(tmp_category_df)
-
+                    # res_json['summary'][index]['count'] = len(tmp_category_df)
+                    res_json['summary'][index]['count'] = sum(map(len, tmp_category_df[query_type]))
+                    
 
     # db = {'fee': [fee_df, fee_flat, '心證'], 'sub': [sub_df, sub_flat, '涵攝'], 'opinion': [opinion_df, opinion_flat, '見解']}
     return res_json
@@ -212,7 +215,7 @@ async def lifespan(app: FastAPI):
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
 
     # Remove unnecessary column
-    main_basic_df.drop(columns=['jud_full'])
+    main_basic_df.drop(columns=['jud_full'], inplace=True)
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
@@ -228,6 +231,7 @@ if on_server:
     domain_setting = {'host': '140.114.80.195', 'port': 6128}
     domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
 else:
+    # domain_setting = {'host': '127.0.0.1', 'port': 8000}
     domain_setting = {'host': '127.0.0.1', 'port': 8000}
     domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
     # domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
@@ -299,7 +303,7 @@ async def search_all(
             res_df['sentence'].fillna("無資料", inplace=True)
             res_df.rename(columns={'sentence': query_type}, inplace=True)
         res_df = res_df[~((res_df['fee']=='無資料') & (res_df['sub']=='無資料') & (res_df['opinion']=='無資料'))][:100]
-   
+
     # Category is searched
     else:
         query_type, query_text = list(query_dict.items())[0]
@@ -323,7 +327,6 @@ async def search_all(
 
         # The resulting sentences are in "sentence", rename them to "fee", "opinion" or "sub" 
         res_df.rename(columns={'sentence': query_type}, inplace=True)
-    res_df['jud_date'] = res_df['jud_date'].astype(str)
 
     res_df = get_sorted_res(res_df, search_method)
     res_json = get_formatted_res(res_df, query_dict, result_dict)
@@ -339,132 +342,81 @@ from typing_extensions import Self
 from fastapi_pagination.bases import AbstractPage, AbstractParams, RawParams
 from math import ceil
 
-class JSONAPIParams(BaseModel, AbstractParams):
-    page: int = Query(1, ge=1, description="Page number")
-    size: int = Query(10, ge=1, le=100, description="Page size")
-    def to_raw_params(self) -> RawParams:
-        return RawParams(limit=self.size, offset=self.size*(self.page-1))
 
-
-T = TypeVar("T")
-
-
-class JSONAPIPage(AbstractPage[T], Generic[T]):
-    meta: dict
-    query_info: dict
-    condition_info: dict
-    summary: list
-    data: Sequence[T]
-    
-
-    __params_type__ = JSONAPIParams
-
-    @classmethod
-    def create(
-        cls,
-        data: Sequence[T],
-        params: AbstractParams,
-        *,
-        total: Optional[int] = None,
-        query_info: dict,
-        condition_info: dict,
-        summary: dict,
-        request_url_prefix: str,
-        **kwargs: Any,
-    ) -> Self:
-        assert isinstance(params, JSONAPIParams)
-        assert total is not None
-        size = params.size if params.size is not None else total
-        page = params.page if params.page is not None else 1
-
-        if size == 0:
-            total_pages = 0
-        elif total is not None:
-            total_pages = ceil(total / size)
-        else:
-            total_pages = None
-            
-        next = request_url_prefix + f"page={page + 1}&size={size}" if page * size < total else "null"
-        previous = request_url_prefix + f"page={page - 1}&size={size}" if (page - 1) >= 1 else "null"
-
-        return cls(
-            meta={
-                'page': page, 
-                'size':size, 
-                'next_page_url' : next, 
-                'previous_page_url' : previous, 
-                'total_pages' : total_pages,
-                'total':total, 
-            },
-
-            query_info=query_info,
-            condition_info=condition_info,
-            summary=summary,
-            data=data,
-            **kwargs,
-        )
-# Get method
-# 強制回傳的物件內容
-class JUD_item(BaseModel):
-    
-    EID: int | None = None
-    UID: int 
-    JID: str 
-    court_type: str 
-    jud_date: str 
-    # case_type and basic_info are merged to one paragraph
-    case_num: str | None = None
-    case_type: str | None = None
-    basic_info: str | None = None
-
-    syllabus: str | None = None
-    sentence: str | None = None
-    fee: List | str | None = None
-    opinion: List | str | None = None
-    sub: List | str | None = None
-    # jud_full: str 
-    jud_url: str 
-    type: str | None = None
-    distance: float | None = None
-    order_index: int | None = None
-    show_unique_result: bool | None = None
-    same_distance_num: int | None = None
-
+def list_paginated_dict(data, page, size, request_params):
+    request_url_prefix = domain + 'api/search' + "?" + "".join([f'{key}={request_params[key]}&' for key in request_params.keys() if request_params[key]!=None])
+    total = len(data)
+    if size == 0:
+        total_pages = 0
+    elif total is not None:
+        total_pages = ceil(total / size)
+    else:
+        total_pages = None
+    # if page > total_pages or page < 1:
+    #     page = 1
+    if page>0:
+        start = (page - 1) * size
+        end = start + size
+        output_data = data[start:end]
+    else:
+        output_data = []
+    # next = f"?page={page + 1}&size={size}" if (page + 1) <= total_pages else "null"
+    next = request_url_prefix + f"page={page + 1}&size={size}" if page * size < total and page > -1 else "null"
+    previous = request_url_prefix + f"page={page - 1}&size={size}" if (page - 1) >= 1 and (page - 1) * size <= total else "null"
+    meta = {'page': page, 
+            'size': size, 
+            'next_page_url': next, 
+            'previous_page_url': previous, 
+            'total_pages': total_pages, 
+            'total': total
+            }
+    return {'paginated_data': output_data, 'meta': meta}
 
 @app.get("/api/search")
 # 輸入所需的參數
 async def search(
-    search_method: str,
-    page: str,
-    size: str,
+    search_method: str = Query("keyword"),
+    page: int = Query(1),
+    size: int = Query(2),
     court_type: str | None = None, 
     jud_date: str | None = None, 
     case_num: str | None = None,
     case_type: str | None = None,
     basic_info: str | None = None, 
     syllabus: str | None = None, 
-    category: str | None = None, 
+    prediction: str | None = None, 
     # opinion: str | None = None, 
     # fee: str | None = None, 
     # sub: str | None = None, 
-    )-> JSONAPIPage[JUD_item]:
+    ):
     # res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub)
-
-    for i in range(3):
-        reset_category = [None, None, None]
-        reset_category[i] = category
-        opinion, fee, sub = reset_category
-
+    request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'prediction':prediction}
+    
+    if prediction:
+        output_dict = {'opinion': None, 'fee': None, 'sub': None}
+        for i, prediction_category in enumerate(['opinion', 'fee', 'sub']):
+            reset_prediction = [None, None, None]
+            reset_prediction[i] = prediction
+            opinion, fee, sub = reset_prediction
+            res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub)
+            
+            paginated_dict = list_paginated_dict(res_json['data'], page, size, request_params)
+            res_json['meta'] = paginated_dict['meta']
+            res_json['data'] = paginated_dict['paginated_data']
+            output_dict[prediction_category] = res_json
+     
+            
+    else:
+        reset_prediction = [None, None, None]
+        opinion, fee, sub = reset_prediction
         res_json = await search_all(search_method, court_type, jud_date, case_num, case_type, basic_info, syllabus, opinion, fee, sub)
-        request_params = {'search_method':search_method, 'court_type':court_type, 'jud_date':jud_date, 'case_num': case_num, 'case_type': case_type, 'basic_info':basic_info, 'syllabus':syllabus, 'category': category}
-        # # 待修改成三合一的搜尋格式
-        request_url_prefix = domain + 'api/search/' + "?" + "".join([f'{key}={request_params[key]}&' for key in request_params.keys() if request_params[key]!=None])
-        paged_res_json = paginate(res_json["data"], additional_data={'query_info': res_json['query_info'], 'condition_info': res_json['condition_info'], 'summary': res_json['summary'], 'request_url_prefix': request_url_prefix})
-        # print('------------')
-        # print(paged_res_json)
-        # print('------------')
-        
-    return paged_res_json
+        paginated_dict = list_paginated_dict(res_json['data'], page, size, request_params)
+        res_json['meta'] = paginated_dict['meta']
+        res_json['data'] = paginated_dict['paginated_data']
+        output_dict = {'jud': res_json}
+    return output_dict
+
+# add_pagination(app)
 
 # Accept UID(int) or JID(str)
 @app.get("/api/article/")
@@ -488,7 +440,10 @@ async def get_jud_from_id(id):
     jud['fee'] = fee_df[fee_df[target_column]==id]['sentence'].tolist()
     # return JUD_item(**jud)
     return jud
-add_pagination(app)
+
+# add_pagination(app)
+
+
 # @app.get('/testip')
 # def index(real_ip: str = Header(None, alias='X-Real-IP')):
 #     print(real_ip)
