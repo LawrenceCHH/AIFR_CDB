@@ -334,9 +334,13 @@ async def search_all(
     return res_json
 
 from typing import Any, Generic, Optional, Sequence, TypeVar
-
+from typing import (
+    Deque, Dict, FrozenSet, List, Optional, Sequence, Set, Tuple, Union
+)
 from fastapi import Query
 from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
+from typing import List, Optional
 from typing_extensions import Self
 
 from fastapi_pagination.bases import AbstractPage, AbstractParams, RawParams
@@ -372,7 +376,58 @@ def list_paginated_dict(data, page, size, request_params):
             }
     return {'paginated_data': output_data, 'meta': meta}
 
-@app.get("/api/search")
+class QueryInfo(BaseModel):
+    query_type: str
+    query_type_ch: str
+    query_text: str
+
+class ConditionInfo(BaseModel):
+    available: List[List[str]]
+    unavailable: List
+
+class Summary(BaseModel):
+    name: str
+    unit: str
+    count: int
+
+class CaseData(BaseModel):
+    EID: Optional[int] | None = None
+    JID: str
+    opinion: Union[str, list] | None = None
+    sub: Union[str, list] | None = None
+    fee: Union[str, list] | None = None
+    type: str | None = None
+    UID: int
+    case_num: str
+    basic_info: str
+    case_type: str
+    court_type: str
+    jud_date: str
+    jud_url: str
+    syllabus: str
+
+class MetaData(BaseModel):
+    page: int
+    size: int
+    next_page_url: str | None = None
+    previous_page_url: Optional[str] | None = None
+    total_pages: int
+    total: int
+
+class ResponseData(BaseModel):
+    query_info: QueryInfo
+    condition_info: ConditionInfo
+    summary: List[Summary]
+    data: List[CaseData] | None = None
+    meta: MetaData
+
+class ResponseModel(BaseModel):
+    opinion: ResponseData | None = None
+    sub: ResponseData | None = None
+    fee: ResponseData | None = None
+    jud: ResponseData | None = None
+
+@app.get("/api/search", response_model=ResponseModel)
 # 輸入所需的參數
 async def search(
     search_method: str = Query("keyword"),
