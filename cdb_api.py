@@ -233,8 +233,8 @@ if on_server:
 else:
     # domain_setting = {'host': '127.0.0.1', 'port': 8000}
     domain_setting = {'host': '127.0.0.1', 'port': 8000}
-    domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
-    # domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
+    # domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
+    domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
 
 if on_server:
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
