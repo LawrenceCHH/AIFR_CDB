@@ -19,7 +19,7 @@ from typing import (
 from math import ceil
 
 
-on_server = False
+on_server = True
 
 
 def get_merged_df(main_basic_df, category_df, based_column='UID'):
