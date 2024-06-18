@@ -1,29 +1,7 @@
-from fastapi import FastAPI, Request
-from pydantic import BaseModel, Field
-
-import os
-
+from fastapi import FastAPI, Request, Query
+from pydantic import BaseModel
 import json
 import pandas as pd
-from tqdm import tqdm
-import gc
-import numpy as np
-
-
-# Pagination
-from typing import List
-from fastapi_pagination import add_pagination, paginate
-from fastapi_pagination.links import Page
-
-# Custom Page
-from typing import Any, Generic, Optional, Sequence, TypeVar
-
-from fastapi import Query, Depends
-from pydantic import BaseModel
-from typing_extensions import Self
-
-from fastapi_pagination.bases import AbstractPage, AbstractParams, RawParams
-
 # Cross origin and allow origins
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -31,14 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 # Log
 import logging
-from fastapi import Header
-import ssl
 
 # 404 redirect to frontend template
 from fastapi.exceptions import HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
-from pathlib import Path
-import re
+from typing import (
+    Deque, Dict, FrozenSet, List, Optional, Sequence, Set, Tuple, Union
+)
+from math import ceil
 
 
 on_server = False
@@ -202,20 +180,20 @@ async def lifespan(app: FastAPI):
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
     if on_server:
-        main_basic_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240320_110_basic_info.csv')
-        opinion_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_opinion.csv')
-        sub_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_sub.csv')
-        fee_df = pd.read_csv('~/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_fee.csv')
+        main_basic_df = pd.read_csv('~/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021_juds_basic_info.csv', lineterminator='\n')
+        opinion_df = pd.read_csv('~/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021判決書_無簡_sentence_opinion.csv', lineterminator='\n')
+        sub_df = pd.read_csv('~/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021判決書_無簡_paragraph_sub.csv', lineterminator='\n')
+        fee_df = pd.read_csv('~/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021判決書_無簡_paragraph_fee.csv', lineterminator='\n')
     else:
-        main_basic_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240320_110_basic_info.csv')
-        opinion_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_opinion.csv')
-        sub_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_sub.csv')
-        fee_df = pd.read_csv('/workspace/data/CDB_20240304_110juds/20240320_final_merged/20240322_110_category_fee.csv')
+        main_basic_df = pd.read_csv('/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021_juds_basic_info.csv', lineterminator='\n')
+        opinion_df = pd.read_csv('/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021判決書_無簡_sentence_opinion.csv', lineterminator='\n')
+        sub_df = pd.read_csv('/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021判決書_無簡_paragraph_sub.csv', lineterminator='\n')
+        fee_df = pd.read_csv('/workspace/data/CDB-2017-2021/6. Merged df/20240617_2017_2021判決書_無簡_paragraph_fee.csv', lineterminator='\n')
 
     db = {'fee': [fee_df, None, '心證'], 'sub': [sub_df, None, '涵攝'], 'opinion': [opinion_df, None, '見解']}
 
     # Remove unnecessary column
-    main_basic_df.drop(columns=['jud_full'], inplace=True)
+    main_basic_df.drop(columns=['JFULL'], inplace=True)
     preloaded_data['main_basic_df'] = main_basic_df
     preloaded_data['opinion_df'] = opinion_df
     preloaded_data['sub_df'] = sub_df
@@ -231,8 +209,8 @@ if on_server:
     domain_setting = {'host': '140.114.80.195', 'port': 6128}
     domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
 else:
-    # domain_setting = {'host': '127.0.0.1', 'port': 8000}
     domain_setting = {'host': '127.0.0.1', 'port': 8000}
+    # domain_setting = {'host': '127.0.0.1', 'port': 4000}
     # domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
     domain = 'https://namely-fast-ocelot.ngrok-free.app' + '/'
 
@@ -318,9 +296,9 @@ async def search_all(
             result_dict = get_condition_filtered_dict(condition_dict, merged_df)
             res_df = result_dict['result_df'][:100]
 
-            # Append additional data to res_df
-            res_df['jud_date'] = res_df['jud_date'].astype(str)
-            res_df['jud_url'] = [f'https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id={JID}' for JID in res_df['JID']]
+            # # Append additional data to res_df
+            # res_df['jud_date'] = res_df['jud_date'].astype(str)
+            # res_df['jud_url'] = [f'https://judgment.judicial.gov.tw/FJUD/data.aspx?ty=JD&id={JID}' for JID in res_df['JID']]
             result_dict['available'].append([query_type, query_text])
         else:
             result_dict = {'result_df': res_df, 'available': [], 'unavailable': [[query_type, query_text]]}
@@ -333,18 +311,6 @@ async def search_all(
 
     return res_json
 
-from typing import Any, Generic, Optional, Sequence, TypeVar
-from typing import (
-    Deque, Dict, FrozenSet, List, Optional, Sequence, Set, Tuple, Union
-)
-from fastapi import Query
-from pydantic import BaseModel
-from pydantic import BaseModel, HttpUrl
-from typing import List, Optional
-from typing_extensions import Self
-
-from fastapi_pagination.bases import AbstractPage, AbstractParams, RawParams
-from math import ceil
 
 
 def list_paginated_dict(data, page, size, request_params):
@@ -391,7 +357,7 @@ class Summary(BaseModel):
     count: int
 
 class CaseData(BaseModel):
-    EID: Optional[int] | None = None
+    # EID: Optional[int] | None = None
     JID: str
     opinion: Union[str, list] | None = None
     sub: Union[str, list] | None = None
@@ -471,7 +437,6 @@ async def search(
         output_dict = {'jud': res_json}
     return output_dict
 
-# add_pagination(app)
 
 # Accept UID(int) or JID(str)
 @app.get("/api/article/")
@@ -496,7 +461,6 @@ async def get_jud_from_id(id):
     # return JUD_item(**jud)
     return jud
 
-# add_pagination(app)
 
 
 # @app.get('/testip')
@@ -506,9 +470,9 @@ async def get_jud_from_id(id):
 
 from fastapi.staticfiles import StaticFiles
 if on_server:
-    frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240416_dist'
+    frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240618_dist'
 else:
-    frontend_template_dir = '/workspace/Projects/AIFR_CDB/frontend_deployment/20240416_dist'
+    frontend_template_dir = '/workspace/Projects/AIFR_CDB/frontend_deployment/20240618_dist'
     # # Redirect
     # from fastapi.responses import RedirectResponse
     # @app.get("/ai-annotated-judgment-database/")
@@ -538,6 +502,7 @@ if __name__ == '__main__':
     print(domain_setting['host'])
     # Formal server
     uvicorn.run('cdb_api:app', host=domain_setting['host'], port=domain_setting['port'], forwarded_allow_ips='*')
+    # uvicorn.run('cdb_api_new:app', host=domain_setting['host'], port=domain_setting['port'], forwarded_allow_ips='*')
 
 # # Commands
 # ngrok tunnel --label edge=edghts_2b8EWy9H5bevmDCX2UwiHmpksel http://localhost:8000
