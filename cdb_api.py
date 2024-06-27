@@ -470,9 +470,9 @@ async def get_jud_from_id(id):
 
 from fastapi.staticfiles import StaticFiles
 if on_server:
-    frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240620_dist'
+    frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240627_dist'
 else:
-    frontend_template_dir = '/workspace/Projects/AIFR_CDB/frontend_deployment/20240620_dist'
+    frontend_template_dir = '/workspace/Projects/AIFR_CDB/frontend_deployment/20240627_dist'
     # # Redirect
     # from fastapi.responses import RedirectResponse
     # @app.get("/ai-annotated-judgment-database/")
