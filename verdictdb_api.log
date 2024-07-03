@@ -14532,3 +14532,5 @@
 2024-07-04 00:27:08,792 - INFO - 140.114.83.23:0 - "GET /img/icon.65f461a6.png HTTP/1.0" 200
 2024-07-04 00:27:08,848 - INFO - 140.114.83.23:0 - "GET /js/app.b77a0062.js.map HTTP/1.0" 200
 2024-07-04 00:27:13,978 - INFO - 140.114.83.23:0 - "GET /api/search?search_method=keyword&page=1&size=10&jud_date=20170101-20211231&prediction=%E6%AE%BA%E4%BA%BA HTTP/1.0" 200
+2024-07-04 01:15:07,979 - INFO - 140.114.83.23:62752 - "GET /api/search?search_method=keyword&page=1&size=5&court_type=&jud_date=20210101-20211026&case_num=%E7%AC%AC130%E8%99%9F&case_type=&basic_info=&syllabus=&prediction=%E6%AE%BA%E4%BA%BA HTTP/1.1" 200
+2024-07-04 01:15:08,227 - INFO - 140.114.83.23:62752 - "GET /favicon.ico HTTP/1.1" 200
