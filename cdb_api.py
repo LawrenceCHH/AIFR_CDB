@@ -205,8 +205,8 @@ async def lifespan(app: FastAPI):
 
 
 if on_server:
-
-    domain_setting = {'host': '140.114.80.195', 'port': 6128}
+    domain_setting = {'host': '127.0.0.1', 'port': 6128}
+    # domain_setting = {'host': '140.114.80.195', 'port': 6128}
     domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
 else:
     domain_setting = {'host': '127.0.0.1', 'port': 8000}
@@ -230,6 +230,7 @@ else:
 if on_server:
     origins = [
         # '*',
+        '127.0.0.1',
         '140.114.80.195',
         'https://jerry914.github.io',
         'https://jerry914.github.io/ai-annotated-judgment-database',

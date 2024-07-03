@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Fetch Example</title>
+</head>
+<body>
+    <h1>Data Fetch Example</h1>
+    <div id="data-container">Loading data...</div>
+
+    <script>
+        // 定義資料來源 URL
+        const dataUrl = 'http://140.114.80.46:6128';
+        // const dataUrl = 'http://140.114.80.195:6128';
+
+        // 取得資料的函數
+        async function fetchData() {
+            try {
+                const response = await fetch(dataUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('data-container').innerText = 'Failed to load data.';
+            }
+        }
+
+        // 顯示資料的函數
+        function displayData(data) {
+            const container = document.getElementById('data-container');
+            container.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+
+        // 當網頁載入完成後執行 fetchData 函數
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
