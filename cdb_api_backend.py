@@ -486,18 +486,18 @@ else:
 
 # app.mount('/', StaticFiles(directory=frontend_template_dir, html=True), name='ai-annotated-judgment-database')
 
-@app.exception_handler(404)
-async def redirect_all_requests_to_frontend(request: Request, exc: HTTPException):
+# @app.exception_handler(404)
+# async def redirect_all_requests_to_frontend(request: Request, exc: HTTPException):
 
-    request_url = str(request.url)
-    splitted_url = request_url.split('/')[3]
-    splitted_url = 'search-result?' if splitted_url.startswith('search-result?') else splitted_url
-    vue_router_paths = ['about', 'search-result?', 'members']
-    path_validated = splitted_url in vue_router_paths
-    if path_validated:
-        return HTMLResponse(open(frontend_template_dir+"/index.html").read())
-    else:
-        return JSONResponse({"detail":"Not Found"})
+#     request_url = str(request.url)
+#     splitted_url = request_url.split('/')[3]
+#     splitted_url = 'search-result?' if splitted_url.startswith('search-result?') else splitted_url
+#     vue_router_paths = ['about', 'search-result?', 'members']
+#     path_validated = splitted_url in vue_router_paths
+#     if path_validated:
+#         return HTMLResponse(open(frontend_template_dir+"/index.html").read())
+#     else:
+#         return JSONResponse({"detail":"Not Found"})
 
 import uvicorn
 if __name__ == '__main__':
