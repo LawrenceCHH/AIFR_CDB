@@ -55,39 +55,37 @@ app.add_middleware(
 # 輸入所需的參數
 async def search(request: Request):
     payload = dict(request.query_params)
-    print('>>>payload:', payload)
-    w01_url = 'http://140.114.80.46:6128/'
+    w01_url = 'http://140.114.80.46:6128/api/search'
     
     async with ClientSession() as sess:
         async with sess.get(w01_url, params=payload) as response:
             if response.status == 200:
-                # return await response.json(content_type=None)
-                return await response.text()
+                return await response.json()
             else:
-                raise HTTPException(status_code=response.status, detail="Failed to retrieve data")
+                raise HTTPException(status_code=response.status, detail="Not Found")
 from fastapi.staticfiles import StaticFiles
 
-# frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240630_dist'
+frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240630_dist'
 
 
-# app.mount('/', StaticFiles(directory=frontend_template_dir, html=True), name='ai-annotated-judgment-database')
+app.mount('/', StaticFiles(directory=frontend_template_dir, html=True), name='ai-annotated-judgment-database')
 
-# @app.exception_handler(404)
-# async def redirect_all_requests_to_frontend(request: Request, exc: HTTPException):
+@app.exception_handler(404)
+async def redirect_all_requests_to_frontend(request: Request, exc: HTTPException):
 
-#     request_url = str(request.url)
-#     splitted_url = request_url.split('/')[3]
-#     splitted_url = 'search-result?' if splitted_url.startswith('search-result?') else splitted_url
-#     vue_router_paths = ['about', 'search-result?', 'members']
-#     path_validated = splitted_url in vue_router_paths
-#     if path_validated:
-#         return HTMLResponse(open(frontend_template_dir+"/index.html").read())
-#     else:
-#         return JSONResponse({"detail":"Not Found"})
+    request_url = str(request.url)
+    splitted_url = request_url.split('/')[3]
+    splitted_url = 'search-result?' if splitted_url.startswith('search-result?') else splitted_url
+    vue_router_paths = ['about', 'search-result?', 'members']
+    path_validated = splitted_url in vue_router_paths
+    if path_validated:
+        return HTMLResponse(open(frontend_template_dir+"/index.html").read())
+    else:
+        return JSONResponse({"detail":"Not Found"})
 
 import uvicorn
-# domain_setting = {'host': '127.0.0.1', 'port': 6128}
-domain_setting = {'host': '127.0.0.1', 'port': 6130}
+domain_setting = {'host': '127.0.0.1', 'port': 6128}
+# domain_setting = {'host': '127.0.0.1', 'port': 6130}
 domain = f"http://{domain_setting['host']}:{domain_setting['port']}" + '/'
 
 if __name__ == '__main__':
