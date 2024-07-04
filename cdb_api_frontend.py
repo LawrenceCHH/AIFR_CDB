@@ -52,7 +52,7 @@ app.add_middleware(
 
 from fastapi.staticfiles import StaticFiles
 
-frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240630_dist'
+frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240704_dist'
 
 
 app.mount('/', StaticFiles(directory=frontend_template_dir, html=True), name='ai-annotated-judgment-database')

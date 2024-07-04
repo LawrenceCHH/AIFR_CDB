@@ -484,7 +484,7 @@ else:
     #     response = RedirectResponse(url='/')
     #     return response
 
-app.mount('/', StaticFiles(directory=frontend_template_dir, html=True), name='ai-annotated-judgment-database')
+# app.mount('/', StaticFiles(directory=frontend_template_dir, html=True), name='ai-annotated-judgment-database')
 
 @app.exception_handler(404)
 async def redirect_all_requests_to_frontend(request: Request, exc: HTTPException):
