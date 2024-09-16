@@ -59,7 +59,7 @@ async def search(request: Request):
     # Get the client's IP address
     client_ip = request.client.host
     payload['src_ip'] = client_ip  # Add src_ip to the payload
-    
+
     async with ClientSession() as sess:
         async with sess.get(w01_url, params=payload) as response:
             if response.status == 200:
@@ -103,4 +103,4 @@ if __name__ == '__main__':
 # ngrok tunnel --label edge=edghts_2b8EWy9H5bevmDCX2UwiHmpksel http://localhost:8000
 # CHH python cdb_api.py
 # Server
-# pm2 start /home/lawrencechh/AIFR_CDB/cdb_api_frontend.py --name cdb
+# pm2 start /home/lawrencechh/AIFR_CDB/cdb_api_frontend.py --name cdb_frontend
