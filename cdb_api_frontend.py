@@ -59,7 +59,6 @@ async def search(request: Request):
     # Get the client's IP address
     client_ip = request.client.host
     payload['src_ip'] = client_ip  # Add src_ip to the payload
-
     async with ClientSession() as sess:
         async with sess.get(w01_url, params=payload) as response:
             if response.status == 200:
