@@ -56,6 +56,9 @@ app.add_middleware(
 async def search(request: Request):
     payload = dict(request.query_params)
     w01_url = 'http://140.114.80.46:6128/api/search'
+    # Get the client's IP address
+    client_ip = request.client.host
+    payload['src_ip'] = client_ip  # Add src_ip to the payload
     
     async with ClientSession() as sess:
         async with sess.get(w01_url, params=payload) as response:
