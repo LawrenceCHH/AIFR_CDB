@@ -56,15 +56,41 @@ app.add_middleware(
 async def search(request: Request):
     payload = dict(request.query_params)
     w01_url = 'http://140.114.80.46:6128/api/search'
-    # Get the client's IP address
-    client_ip = request.client.host
-    payload['src_ip'] = client_ip  # Add src_ip to the payload
+    
     async with ClientSession() as sess:
         async with sess.get(w01_url, params=payload) as response:
             if response.status == 200:
                 return await response.json()
             else:
                 raise HTTPException(status_code=response.status, detail="Not Found")
+            
+@app.get("/api/criminal")
+# 輸入所需的參數
+async def search(request: Request):
+    payload = dict(request.query_params)
+    w01_url = 'http://140.114.80.46:6128/api/criminal'
+    
+    async with ClientSession() as sess:
+        async with sess.get(w01_url, params=payload) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                raise HTTPException(status_code=response.status, detail="Not Found")
+            
+@app.get("/api/civil")
+# 輸入所需的參數
+async def search(request: Request):
+    payload = dict(request.query_params)
+    w01_url = 'http://140.114.80.46:6128/api/civil'
+    
+    async with ClientSession() as sess:
+        async with sess.get(w01_url, params=payload) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                raise HTTPException(status_code=response.status, detail="Not Found")
+            
+
 from fastapi.staticfiles import StaticFiles
 
 frontend_template_dir = '/home/lawrencechh/AIFR_CDB/frontend_deployment/20240630_dist'
@@ -102,4 +128,4 @@ if __name__ == '__main__':
 # ngrok tunnel --label edge=edghts_2b8EWy9H5bevmDCX2UwiHmpksel http://localhost:8000
 # CHH python cdb_api.py
 # Server
-# pm2 start /home/lawrencechh/AIFR_CDB/cdb_api_frontend.py --name cdb_frontend
+# pm2 start /home/lawrencechh/AIFR_CDB/cdb_api_frontend.py --name cdb
